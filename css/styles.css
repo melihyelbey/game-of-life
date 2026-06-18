@@ -305,3 +305,63 @@ ul { list-style: none; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* ============================================================
+   YÖNETİCİ PANELİ (admin.html)
+============================================================ */
+.admin-body { background: var(--bg); min-height: 100vh; }
+.admin-header { border-bottom: 1px solid var(--border); padding: 16px 0; background: var(--bg-alt); }
+.admin-header-inner { display: flex; align-items: center; gap: 16px; }
+.admin-tag { color: var(--text-muted); font-size: .9rem; letter-spacing: 1px; }
+.admin-logout { margin-left: auto; padding: 8px 18px; }
+.admin-main { padding: 40px 24px 80px; }
+
+.admin-login { max-width: 420px; margin: 8vh auto 0; text-align: center; }
+.admin-login h1 { font-family: var(--font-head); font-size: 2rem; margin-bottom: 10px; }
+.admin-login p { color: var(--text-muted); margin-bottom: 24px; }
+.admin-login-form { display: flex; flex-direction: column; gap: 14px; }
+.admin-login-form input {
+  background: var(--surface); border: 1px solid rgba(255,255,255,.1); border-radius: 10px;
+  padding: 14px 16px; color: var(--text); font-family: var(--font-body); font-size: 1rem;
+}
+.admin-login-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,161,74,.18); }
+
+.admin-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+.admin-toolbar h1 { font-family: var(--font-head); font-size: 2rem; }
+.admin-filters { display: flex; align-items: center; gap: 14px; }
+.admin-filters label { color: var(--text-muted); font-size: .9rem; display: flex; align-items: center; gap: 8px; }
+.admin-filters select { background: var(--surface); color: var(--text); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 8px 12px; font-family: var(--font-body); }
+.admin-filters .btn { padding: 8px 16px; }
+.admin-status { color: var(--text-muted); font-size: .88rem; margin-bottom: 16px; }
+.admin-empty { color: var(--text-muted); text-align: center; padding: 40px 0; }
+
+.appt-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+.appt-card {
+  background: var(--surface); border: 1px solid rgba(255,255,255,.06); border-left: 4px solid var(--text-muted);
+  border-radius: 14px; padding: 20px 22px; transition: border-color .3s, transform .3s;
+}
+.appt-card.status-confirmed { border-left-color: #4caf78; }
+.appt-card.status-pending { border-left-color: var(--accent); }
+.appt-card.status-cancelled { border-left-color: #c75b5b; opacity: .72; }
+.appt-card:hover { transform: translateY(-3px); }
+.appt-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.appt-when strong { font-family: var(--font-head); font-size: 1.25rem; margin-right: 10px; }
+.appt-when span { color: var(--accent); font-weight: 500; }
+.appt-badge { font-size: .74rem; font-weight: 600; padding: 4px 11px; border-radius: 50px; }
+.badge-pending { background: rgba(201,161,74,.18); color: var(--accent-2); }
+.badge-confirmed { background: rgba(76,175,120,.2); color: #7ee0a0; }
+.badge-cancelled { background: rgba(199,91,91,.2); color: #ff9a9a; }
+.appt-info { display: flex; flex-direction: column; gap: 7px; font-size: .92rem; margin-bottom: 16px; }
+.appt-info .lbl { display: inline-block; width: 78px; color: var(--text-muted); font-size: .82rem; }
+.appt-info a { color: var(--accent); }
+
+.appt-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.appt-btn { border: 0; border-radius: 8px; padding: 8px 14px; font-family: var(--font-body); font-size: .85rem; font-weight: 500; cursor: pointer; transition: filter .2s, transform .2s; color: #fff; }
+.appt-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-approve { background: #2e8b57; }
+.btn-cancel { background: #b85c5c; }
+.btn-reschedule { background: #4a5a78; }
+.btn-delete { background: transparent; border: 1px solid rgba(255,255,255,.18); color: var(--text-muted); }
+
+.reschedule-box { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08); }
+.reschedule-box input, .reschedule-box select { background: var(--bg); color: var(--text); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 8px 10px; font-family: var(--font-body); }

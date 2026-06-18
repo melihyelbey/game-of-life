@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Hairbey · Yönetici Paneli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💈</text></svg>" />
+</head>
+<body class="admin-body">
+
+  <header class="admin-header">
+    <div class="container admin-header-inner">
+      <a href="index.html" class="logo"><span class="logo-mark">💈</span>
+        <span class="logo-text">Hair<span class="accent">bey</span></span>
+      </a>
+      <span class="admin-tag">Yönetici Paneli</span>
+      <button id="logoutBtn" class="btn btn-ghost admin-logout" hidden>Çıkış</button>
+    </div>
+  </header>
+
+  <main class="container admin-main">
+
+    <!-- Giriş ekranı -->
+    <section id="loginView" class="admin-login">
+      <h1>Yönetici Girişi</h1>
+      <p>Randevuları görmek için şifrenizi girin.</p>
+      <form id="loginForm" class="admin-login-form">
+        <input type="password" id="adminPass" placeholder="Yönetici şifresi" autocomplete="current-password" />
+        <button type="submit" class="btn btn-accent">Giriş Yap</button>
+      </form>
+      <p class="form-error" id="loginError" role="alert"></p>
+    </section>
+
+    <!-- Panel -->
+    <section id="panelView" hidden>
+      <div class="admin-toolbar">
+        <h1>Randevular</h1>
+        <div class="admin-filters">
+          <label>Durum:
+            <select id="statusFilter">
+              <option value="all">Tümü</option>
+              <option value="pending">Beklemede</option>
+              <option value="confirmed">Onaylı</option>
+              <option value="cancelled">İptal</option>
+            </select>
+          </label>
+          <button id="refreshBtn" class="btn btn-ghost">↻ Yenile</button>
+        </div>
+      </div>
+
+      <p class="admin-status" id="panelStatus"></p>
+      <div id="apptList" class="appt-list"></div>
+    </section>
+
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

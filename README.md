@@ -11,15 +11,25 @@ tek sayfalık web sitesi. Müşteriler hizmetleri görüp **WhatsApp üzerinden 
 - Geçmiş tarih/saat seçimi engellenir; alınan saatler "Dolu" işaretlenip kapanır
 - Tıklanabilir telefon, e-posta, Instagram ve gömülü Google Harita
 - Tamamen responsive (mobil/tablet/masaüstü) ve erişilebilir (`prefers-reduced-motion` desteği)
-- Sıfır bağımlılık: saf HTML + CSS + JavaScript
+- **Backend (Netlify Functions + Blobs):** randevular kalıcı saklanır, dolu saatler **tüm cihazlarda ortak** görünür
+- **Yönetici paneli (`/admin`):** randevuları onayla / iptal et / ertele / sil — her işlemde müşteriye otomatik WhatsApp bildirimi açılır
 
 ## 📁 Dosya Yapısı
 
 ```
-index.html       → Tüm sayfa içeriği
-css/styles.css   → Tasarım sistemi ve animasyonlar
-js/script.js     → Form, menü, animasyon mantığı
-assets/          → Kendi fotoğraflarınız için
+index.html                → Müşteri sayfası
+admin.html                → Yönetici paneli (/admin)
+css/styles.css            → Tasarım sistemi ve animasyonlar
+js/script.js              → Form, menü, animasyon + backend bağlantısı
+js/admin.js               → Yönetici paneli mantığı
+netlify/functions/        → Serverless backend
+  _lib.js                 → Ortak yardımcılar (Netlify Blobs)
+  availability.js         → GET /api/availability (dolu saatler — herkese açık)
+  book.js                 → POST /api/book (randevu oluştur)
+  admin-appointments.js   → Yönetici uçları (şifre korumalı)
+netlify.toml              → Netlify yapılandırması
+package.json              → Backend bağımlılığı (@netlify/blobs)
+assets/                   → Kendi fotoğraflarınız için
 ```
 
 ## 🚀 Çalıştırma
@@ -44,26 +54,42 @@ python3 -m http.server 8000
 - **Renkler / fontlar:** `css/styles.css` dosyasının en üstündeki `:root` değişkenleri.
 - **Fotoğraflar:** `assets/README.md` dosyasına bakın.
 
-## ⏰ Dolu Saatler Hakkında (önemli)
+## 🌐 Yayınlama (Netlify — backend dahil)
 
-Site statiktir; sunucu/veritabanı yoktur. Bu yüzden bir saat **dolu** olarak
-işaretlendiğinde bu bilgi yalnızca **o tarayıcıda** (`localStorage`) saklanır.
-Yani randevu alan kişi, kendi cihazında o saati artık "Dolu" görür — fakat
-başka bir cihazdan giren biri bunu **göremez**.
+Backend ve yönetici panelinin çalışması için site **Netlify'a GitHub üzerinden bağlanarak**
+yayınlanmalıdır (sürükle-bırak yöntemi fonksiyonları/Blobs'u çalıştırmaz).
 
-> **Tüm cihazlarda ortak (gerçek) dolu/boş takibi** istiyorsanız bir backend
-> gerekir (örn. küçük bir API + veritabanı veya Google Takvim / Calendly gibi
-> bir randevu servisi). İsterseniz bu sürüm hazırlanabilir.
+1. [app.netlify.com](https://app.netlify.com) → **Add new site → Import an existing project → GitHub**.
+2. `melihyelbey/game-of-life` deposunu ve `claude/hairbey-booking-system-sdg3j2` dalını seçin.
+3. Build komutu **boş**, publish dizini **`.`** (kök). **Deploy** deyin.
+4. **Site configuration → Environment variables** bölümüne şu değişkeni ekleyin:
+   - `ADMIN_PASSWORD` = *(yönetici paneli şifreniz)*
+   Ardından **Deploys → Trigger deploy** ile yeniden yayınlayın.
+5. Netlify Blobs otomatik etkindir; ekstra veritabanı kurulumu **gerekmez**.
 
-## 🌐 Ücretsiz Yayınlama (GitHub Pages)
+> **Yerel test:** `npm install` sonrası `npx netlify dev` çalıştırın. Netlify Dev,
+> yerel bir Blobs sanal alanı sağlar; `ADMIN_PASSWORD`'ü `.env` dosyasına yazabilirsiniz.
 
-1. Bu dalı GitHub'a gönderin (push).
-2. GitHub'da repo → **Settings → Pages**.
-3. **Source** olarak ilgili dalı ve `/ (root)` klasörünü seçin, **Save** deyin.
-4. Birkaç dakika içinde siteniz `https://<kullanıcı-adı>.github.io/<repo>/` adresinde yayında olur.
+## 🔐 Yönetici Paneli (`/admin`)
 
-> Alternatif olarak [Netlify](https://www.netlify.com/) veya [Vercel](https://vercel.com/) üzerine
-> klasörü sürükleyip bırakarak da yayınlayabilirsiniz.
+- Adres: `https://<siteniz>.netlify.app/admin`
+- Netlify'da tanımladığınız `ADMIN_PASSWORD` ile giriş yapılır.
+- Her randevu için:
+  - **Onayla** → durum "Onaylı" olur, müşteriye onay WhatsApp mesajı açılır.
+  - **İptal Et** → durum "İptal" olur, saat boşa düşer, müşteriye iptal mesajı açılır.
+  - **Ertele** → yeni tarih/saat seçip kaydedin; müşteriye güncelleme mesajı açılır.
+  - **Sil** → kaydı kalıcı kaldırır (müşteriye mesaj gitmez).
+- İptal/silinen randevuların saati otomatik olarak yeniden **boş** görünür.
+
+> **Not:** WhatsApp bildirimleri, müşterinin numarasına önceden yazılmış mesajla
+> WhatsApp'ı açar; göndermek için "gönder"e basmanız yeterlidir (wa.me yöntemi).
+> Tek tuşla tam otomatik gönderim için ücretli WhatsApp Business API gerekir.
+
+## ⏰ Backend yoksa ne olur?
+
+Site backend'siz (ör. dosyayı çift tıklayıp veya sade statik hostta) açılırsa
+otomatik olarak `localStorage` yedeğine düşer; dolu saatler yalnızca o tarayıcıda
+geçerli olur. Netlify üzerinde yayınlandığında ise tüm cihazlarda ortak çalışır.
 
 ## 📞 İletişim
 

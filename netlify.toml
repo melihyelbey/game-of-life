@@ -1,0 +1,12 @@
+# Netlify yapılandırması — Hairbey
+# Statik site + serverless fonksiyonlar (randevu backend'i)
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Yönetici sayfası temiz adres: /admin -> admin.html
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200

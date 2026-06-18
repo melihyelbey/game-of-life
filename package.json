@@ -1,0 +1,10 @@
+{
+  "name": "hairbey",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hairbey berber randevu sitesi ve backend (Netlify Functions + Blobs)",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

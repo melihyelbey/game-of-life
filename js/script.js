@@ -122,12 +122,11 @@
   }
 
   /* --------------------------------------------------------
-     6) Randevu formu — WhatsApp'a yönlendir + dolu/geçmiş saat kontrolü
+     6) Randevu formu — backend (Netlify Functions) + WhatsApp
 
-     NOT: Bu statik bir sitedir (sunucu yok). "Dolu" bilgisi tarayıcıda
-     localStorage ile saklanır; yani bu cihazda alınan randevular dolu
-     görünür. Tüm cihazlarda ortak (gerçek) dolu/boş takibi için backend
-     gerekir — README'ye bakın.
+     Backend varsa (yayınlanmış sitede) dolu saatler TÜM cihazlarda ortak
+     görünür. Backend yoksa (ör. dosyayı çift tıklayıp açınca) localStorage'a
+     düşülür; o zaman dolu bilgisi yalnızca bu tarayıcıda geçerlidir.
   -------------------------------------------------------- */
   var form = document.getElementById("randevuForm");
   var errorBox = document.getElementById("formError");
@@ -138,6 +137,9 @@
   var TIME_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00",
                     "15:00","16:00","17:00","18:00","19:00","20:00"];
   var STORAGE_KEY = "hairbey_dolu_randevular";
+
+  // http(s) üzerindeyken backend'i dene; file:// ise doğrudan localStorage
+  var backendOk = (location.protocol === "http:" || location.protocol === "https:");
 
   // --- Yerel saate göre tarih yardımcıları (UTC kaymasını önler) ---
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
@@ -150,20 +152,27 @@
     return pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
 
-  // --- localStorage: dolu randevular { "2026-06-20": ["10:00", ...] } ---
-  function getBooked() {
+  // --- localStorage yedeği: { "2026-06-20": ["10:00", ...] } ---
+  function getLocal() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
     catch (e) { return {}; }
   }
-  function isBooked(date, time) {
-    var all = getBooked();
-    return Array.isArray(all[date]) && all[date].indexOf(time) !== -1;
-  }
-  function addBooked(date, time) {
-    var all = getBooked();
+  function addLocal(date, time) {
+    var all = getLocal();
     if (!Array.isArray(all[date])) all[date] = [];
     if (all[date].indexOf(time) === -1) all[date].push(time);
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all)); } catch (e) {}
+  }
+
+  // --- Seçilen gün için dolu saatleri getir (backend → yedek localStorage) ---
+  function fetchBooked(date) {
+    if (backendOk) {
+      return fetch("/api/availability?date=" + encodeURIComponent(date))
+        .then(function (r) { if (!r.ok) throw new Error("api"); return r.json(); })
+        .then(function (d) { return d.booked || []; })
+        .catch(function () { backendOk = false; return getLocal()[date] || []; });
+    }
+    return Promise.resolve(getLocal()[date] || []);
   }
 
   // --- Seçilen tarihe göre saat listesini yeniden oluştur ---
@@ -175,26 +184,34 @@
     placeholder.value = "";
     placeholder.disabled = true;
     placeholder.selected = true;
-    placeholder.textContent = date ? "Saat seçin" : "Önce tarih seçin";
+    placeholder.textContent = date ? "Yükleniyor..." : "Önce tarih seçin";
     saatSelect.appendChild(placeholder);
 
     if (!date) return;
 
-    var isToday = date === todayStr();
-    var current = nowHHMM();
+    fetchBooked(date).then(function (booked) {
+      saatSelect.innerHTML = "";
+      var ph = document.createElement("option");
+      ph.value = ""; ph.disabled = true; ph.selected = true;
+      ph.textContent = "Saat seçin";
+      saatSelect.appendChild(ph);
 
-    TIME_SLOTS.forEach(function (slot) {
-      var opt = document.createElement("option");
-      opt.value = slot;
-      var label = slot;
-      var disabled = false;
+      var isToday = date === todayStr();
+      var current = nowHHMM();
 
-      if (isBooked(date, slot)) { disabled = true; label += " — Dolu"; }
-      else if (isToday && slot <= current) { disabled = true; label += " — Geçti"; }
+      TIME_SLOTS.forEach(function (slot) {
+        var opt = document.createElement("option");
+        opt.value = slot;
+        var label = slot;
+        var disabled = false;
 
-      opt.textContent = label;
-      opt.disabled = disabled;
-      saatSelect.appendChild(opt);
+        if (booked.indexOf(slot) !== -1) { disabled = true; label += " — Dolu"; }
+        else if (isToday && slot <= current) { disabled = true; label += " — Geçti"; }
+
+        opt.textContent = label;
+        opt.disabled = disabled;
+        saatSelect.appendChild(opt);
+      });
     });
   }
 
@@ -211,6 +228,28 @@
       rebuildSlots();
     });
     rebuildSlots();
+  }
+
+  // WhatsApp ile berbere bilgi mesajı aç (talep özeti)
+  function openShopWhatsApp(d) {
+    var tarihStr = d.tarih.split("-").reverse().join(".");
+    var lines = [
+      "Merhaba Hairbey, randevu almak istiyorum.",
+      "",
+      "👤 Ad Soyad: " + d.ad,
+      "📞 Telefon: " + d.telefon,
+      "✂️ Hizmet: " + d.hizmet,
+      "📅 Tarih: " + tarihStr,
+      "⏰ Saat: " + d.saat
+    ];
+    if (d.notu) lines.push("📝 Not: " + d.notu);
+    var url = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(lines.join("\n"));
+    window.open(url, "_blank", "noopener");
+  }
+
+  function showSuccess() {
+    errorBox.style.color = "#7ee08a";
+    errorBox.textContent = "Randevu talebiniz alındı ve WhatsApp'ta açıldı. Bu saat artık dolu olarak işaretlendi.";
   }
 
   form.addEventListener("submit", function (e) {
@@ -230,7 +269,6 @@
       errorBox.textContent = "Lütfen ad, telefon, hizmet, tarih ve saat alanlarını doldurun.";
       return;
     }
-    // Telefon: rakamları say (Türkiye için 10-11 hane bekleriz)
     var digits = telefon.replace(/\D/g, "");
     if (digits.length < 10 || digits.length > 13) {
       errorBox.textContent = "Lütfen geçerli bir telefon numarası girin (örn. 05XX XXX XX XX).";
@@ -245,37 +283,52 @@
       rebuildSlots();
       return;
     }
-    if (isBooked(tarih, saat)) {
-      errorBox.textContent = "Bu saat dolu. Lütfen başka bir saat seçin.";
+
+    var payload = { ad: ad, telefon: telefon, hizmet: hizmet, tarih: tarih, saat: saat, not: notu };
+    var data = { ad: ad, telefon: telefon, hizmet: hizmet, tarih: tarih, saat: saat, notu: notu };
+
+    // Backend yoksa: localStorage'a yaz ve WhatsApp aç
+    if (!backendOk) {
+      addLocal(tarih, saat);
+      openShopWhatsApp(data);
       rebuildSlots();
+      showSuccess();
       return;
     }
 
-    // Tarihi okunaklı biçime çevir (gg.aa.yyyy)
-    var tarihStr = tarih.split("-").reverse().join(".");
+    // Backend'e gönder
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
 
-    // WhatsApp mesajını oluştur
-    var lines = [
-      "Merhaba Hairbey, randevu almak istiyorum.",
-      "",
-      "👤 Ad Soyad: " + ad,
-      "📞 Telefon: " + telefon,
-      "✂️ Hizmet: " + hizmet,
-      "📅 Tarih: " + tarihStr,
-      "⏰ Saat: " + saat
-    ];
-    if (notu) lines.push("📝 Not: " + notu);
-
-    var message = encodeURIComponent(lines.join("\n"));
-    var url = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message;
-
-    window.open(url, "_blank", "noopener");
-
-    // Bu saati "dolu" olarak işaretle ve listeyi güncelle
-    addBooked(tarih, saat);
-    rebuildSlots();
-    errorBox.style.color = "#7ee08a";
-    errorBox.textContent = "Randevu talebiniz WhatsApp'ta açıldı. Bu saat artık dolu olarak işaretlendi.";
+    fetch("/api/book", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) {
+        return r.json().then(function (body) { return { status: r.status, body: body }; });
+      })
+      .then(function (res) {
+        if (res.status === 200 && res.body.ok) {
+          openShopWhatsApp(data);
+          rebuildSlots();
+          showSuccess();
+        } else if (res.status === 409) {
+          errorBox.textContent = "Bu saat az önce doldu. Lütfen başka bir saat seçin.";
+          rebuildSlots();
+        } else {
+          errorBox.textContent = res.body.error || "Randevu kaydedilemedi. Lütfen tekrar deneyin.";
+        }
+      })
+      .catch(function () {
+        // Ağ/backend hatası: yedek olarak localStorage + WhatsApp
+        backendOk = false;
+        addLocal(tarih, saat);
+        openShopWhatsApp(data);
+        rebuildSlots();
+        showSuccess();
+      })
+      .finally(function () { if (btn) btn.disabled = false; });
   });
 
   /* --------------------------------------------------------

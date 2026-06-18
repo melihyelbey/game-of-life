@@ -209,7 +209,10 @@ ul { list-style: none; }
   outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,161,74,.18);
 }
 .form-group select option { background: var(--surface); color: var(--text); }
+.form-note { color: var(--text-muted); font-size: .82rem; text-align: center; margin: 4px 0 8px; }
 .form-error { color: #ff7a7a; font-size: .88rem; min-height: 20px; margin-bottom: 12px; text-align: center; }
+/* Dolu / geçmiş saatler soluk görünür */
+.form-group select option:disabled { color: #6b6764; }
 .btn-whatsapp svg { flex-shrink: 0; }
 
 /* ============================================================

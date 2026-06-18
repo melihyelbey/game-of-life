@@ -8,6 +8,7 @@ tek sayfalık web sitesi. Müşteriler hizmetleri görüp **WhatsApp üzerinden 
 - Premium koyu + altın tasarım, akıcı animasyonlar (scroll-reveal, ken-burns hero, sayaç, hover efektleri)
 - Hizmet & fiyat listesi (Traş 450₺'den başlayan fiyatlar)
 - WhatsApp ile online randevu formu (sunucu/veritabanı gerektirmez)
+- Geçmiş tarih/saat seçimi engellenir; alınan saatler "Dolu" işaretlenip kapanır
 - Tıklanabilir telefon, e-posta, Instagram ve gömülü Google Harita
 - Tamamen responsive (mobil/tablet/masaüstü) ve erişilebilir (`prefers-reduced-motion` desteği)
 - Sıfır bağımlılık: saf HTML + CSS + JavaScript
@@ -39,8 +40,20 @@ python3 -m http.server 8000
   `<select id="hizmet">` seçenekleri (ikisini de güncelleyin).
 - **İletişim bilgileri:** `index.html` içindeki `#iletisim` bölümü ve footer.
 - **WhatsApp numarası:** `js/script.js` dosyasının başındaki `WHATSAPP_NUMBER` değişkeni.
+- **Randevu saat aralığı:** `js/script.js` içindeki `TIME_SLOTS` dizisi (çalışma saatlerinize göre düzenleyin).
 - **Renkler / fontlar:** `css/styles.css` dosyasının en üstündeki `:root` değişkenleri.
 - **Fotoğraflar:** `assets/README.md` dosyasına bakın.
+
+## ⏰ Dolu Saatler Hakkında (önemli)
+
+Site statiktir; sunucu/veritabanı yoktur. Bu yüzden bir saat **dolu** olarak
+işaretlendiğinde bu bilgi yalnızca **o tarayıcıda** (`localStorage`) saklanır.
+Yani randevu alan kişi, kendi cihazında o saati artık "Dolu" görür — fakat
+başka bir cihazdan giren biri bunu **göremez**.
+
+> **Tüm cihazlarda ortak (gerçek) dolu/boş takibi** istiyorsanız bir backend
+> gerekir (örn. küçük bir API + veritabanı veya Google Takvim / Calendly gibi
+> bir randevu servisi). İsterseniz bu sürüm hazırlanabilir.
 
 ## 🌐 Ücretsiz Yayınlama (GitHub Pages)
 

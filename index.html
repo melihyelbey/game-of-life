@@ -277,12 +277,10 @@
         <div class="form-row">
           <div class="form-group">
             <label for="saat">Saat</label>
+            <!-- Saat seçenekleri js/script.js tarafından, seçilen tarihe göre
+                 (dolu / geçmiş saatler işaretlenerek) dinamik oluşturulur. -->
             <select id="saat" name="saat" required>
-              <option value="" disabled selected>Saat seçin</option>
-              <option>09:00</option><option>10:00</option><option>11:00</option>
-              <option>12:00</option><option>13:00</option><option>14:00</option>
-              <option>15:00</option><option>16:00</option><option>17:00</option>
-              <option>18:00</option><option>19:00</option><option>20:00</option>
+              <option value="" disabled selected>Önce tarih seçin</option>
             </select>
           </div>
           <div class="form-group">
@@ -291,6 +289,7 @@
           </div>
         </div>
 
+        <p class="form-note">ℹ️ Dolu saatler "(Dolu)" olarak işaretlenir ve seçilemez. Geçmiş tarih/saatler kapalıdır.</p>
         <p class="form-error" id="formError" role="alert"></p>
 
         <button type="submit" class="btn btn-accent btn-block btn-whatsapp">

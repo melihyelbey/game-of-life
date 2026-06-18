@@ -17,12 +17,16 @@ export function json(data, status = 200) {
   });
 }
 
-// Yönetici doğrulaması: x-admin-password başlığı, ADMIN_PASSWORD env değişkeni ile karşılaştırılır
+// Yönetici doğrulaması: e-posta + şifre.
+// ADMIN_EMAIL ve ADMIN_PASSWORD ortam değişkenlerinden okunur.
+// (Şifre güvenlik gereği kodda tutulmaz; Netlify env değişkenine eklenir.)
 export function isAdmin(req) {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false; // şifre tanımlı değilse yönetim kapalı
-  const given = req.headers.get("x-admin-password");
-  return Boolean(given) && given === expected;
+  const expectedPass = process.env.ADMIN_PASSWORD;
+  const expectedEmail = (process.env.ADMIN_EMAIL || "melihyelbey1216@gmail.com").trim().toLowerCase();
+  if (!expectedPass) return false; // şifre tanımlı değilse yönetim kapalı
+  const givenPass = req.headers.get("x-admin-password") || "";
+  const givenEmail = (req.headers.get("x-admin-email") || "").trim().toLowerCase();
+  return givenPass === expectedPass && givenEmail === expectedEmail;
 }
 
 // Tüm randevuları oku

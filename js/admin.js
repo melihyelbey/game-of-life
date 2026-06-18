@@ -7,12 +7,14 @@
   "use strict";
 
   var SS_KEY = "hairbey_admin_pass";
+  var SS_EMAIL = "hairbey_admin_email";
   var TIME_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00",
                     "15:00","16:00","17:00","18:00","19:00","20:00"];
 
   var loginView = document.getElementById("loginView");
   var panelView = document.getElementById("panelView");
   var loginForm = document.getElementById("loginForm");
+  var adminEmail = document.getElementById("adminEmail");
   var adminPass = document.getElementById("adminPass");
   var loginError = document.getElementById("loginError");
   var logoutBtn = document.getElementById("logoutBtn");
@@ -24,12 +26,18 @@
   var STATUS_TR = { pending: "Beklemede", confirmed: "Onaylı", cancelled: "İptal" };
 
   function getPass() { try { return sessionStorage.getItem(SS_KEY) || ""; } catch (e) { return ""; } }
-  function setPass(p) { try { sessionStorage.setItem(SS_KEY, p); } catch (e) {} }
-  function clearPass() { try { sessionStorage.removeItem(SS_KEY); } catch (e) {} }
+  function getEmail() { try { return sessionStorage.getItem(SS_EMAIL) || ""; } catch (e) { return ""; } }
+  function setCreds(email, pass) {
+    try { sessionStorage.setItem(SS_EMAIL, email); sessionStorage.setItem(SS_KEY, pass); } catch (e) {}
+  }
+  function clearPass() {
+    try { sessionStorage.removeItem(SS_KEY); sessionStorage.removeItem(SS_EMAIL); } catch (e) {}
+  }
 
   function api(path, opts) {
     opts = opts || {};
     opts.headers = opts.headers || {};
+    opts.headers["x-admin-email"] = getEmail();
     opts.headers["x-admin-password"] = getPass();
     return fetch(path, opts);
   }
@@ -71,12 +79,13 @@
   loginForm.addEventListener("submit", function (e) {
     e.preventDefault();
     loginError.textContent = "";
+    var em = adminEmail.value.trim();
     var p = adminPass.value.trim();
-    if (!p) { loginError.textContent = "Lütfen şifre girin."; return; }
-    setPass(p);
-    // Doğrulama: liste isteği at, 401 ise şifre yanlış
+    if (!em || !p) { loginError.textContent = "Lütfen e-posta ve şifre girin."; return; }
+    setCreds(em, p);
+    // Doğrulama: liste isteği at, 401 ise e-posta/şifre yanlış
     api("/api/admin/appointments").then(function (r) {
-      if (r.status === 401) { clearPass(); loginError.textContent = "Şifre hatalı."; return; }
+      if (r.status === 401) { clearPass(); loginError.textContent = "E-posta veya şifre hatalı."; return; }
       if (!r.ok) { loginError.textContent = "Sunucuya ulaşılamadı. Site Netlify'da yayında mı?"; return; }
       showPanel();
     }).catch(function () {

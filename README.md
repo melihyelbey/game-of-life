@@ -62,9 +62,12 @@ yayınlanmalıdır (sürükle-bırak yöntemi fonksiyonları/Blobs'u çalıştı
 1. [app.netlify.com](https://app.netlify.com) → **Add new site → Import an existing project → GitHub**.
 2. `melihyelbey/game-of-life` deposunu ve `claude/hairbey-booking-system-sdg3j2` dalını seçin.
 3. Build komutu **boş**, publish dizini **`.`** (kök). **Deploy** deyin.
-4. **Site configuration → Environment variables** bölümüne şu değişkeni ekleyin:
-   - `ADMIN_PASSWORD` = *(yönetici paneli şifreniz)*
+4. **Site configuration → Environment variables** bölümüne şu değişkenleri ekleyin:
+   - `ADMIN_EMAIL` = `melihyelbey1216@gmail.com`
+   - `ADMIN_PASSWORD` = `Me5350454736`
    Ardından **Deploys → Trigger deploy** ile yeniden yayınlayın.
+   *(Bu değerlerle yalnızca bu e-posta + şifre ikilisi panele girebilir. Şifre kodda
+   tutulmaz, yalnızca burada saklanır; istediğiniz zaman bu ekrandan değiştirebilirsiniz.)*
 5. Netlify Blobs otomatik etkindir; ekstra veritabanı kurulumu **gerekmez**.
 
 > **Yerel test:** `npm install` sonrası `npx netlify dev` çalıştırın. Netlify Dev,
@@ -73,7 +76,8 @@ yayınlanmalıdır (sürükle-bırak yöntemi fonksiyonları/Blobs'u çalıştı
 ## 🔐 Yönetici Paneli (`/admin`)
 
 - Adres: `https://<siteniz>.netlify.app/admin`
-- Netlify'da tanımladığınız `ADMIN_PASSWORD` ile giriş yapılır.
+- Giriş: Netlify'da tanımladığınız `ADMIN_EMAIL` + `ADMIN_PASSWORD` ile yapılır.
+  Sadece bu e-posta/şifre ikilisi panele erişebilir.
 - Her randevu için:
   - **Onayla** → durum "Onaylı" olur, müşteriye onay WhatsApp mesajı açılır.
   - **İptal Et** → durum "İptal" olur, saat boşa düşer, müşteriye iptal mesajı açılır.

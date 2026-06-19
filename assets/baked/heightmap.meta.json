@@ -1,0 +1,18 @@
+{
+  "gridW": 512,
+  "gridH": 512,
+  "minElev": 0,
+  "maxElev": 36.202728271484375,
+  "bbox": {
+    "south": 41.045,
+    "west": -71.895,
+    "north": 41.085,
+    "east": -71.84
+  },
+  "zoom": 14,
+  "metersPerPixel": 7.2038537779720695,
+  "widthMeters": 4616.225003039222,
+  "heightMeters": 4421.599999999906,
+  "originLon": -71.895,
+  "originLat": 41.085
+}

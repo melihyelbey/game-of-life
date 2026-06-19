@@ -1,369 +1,49 @@
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Montauk Ranger — Park Patrol</title>
+    <meta name="description" content="Drive a park ranger truck across the real topography of Montauk Point, NY. Firewatch-inspired." />
+    <link rel="stylesheet" href="css/game.css" />
+    <!-- Three.js is vendored locally (assets/vendor/) so the game has zero runtime
+         network dependency — it runs fully offline once the data is baked. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./assets/vendor/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
 
-  <!-- ===== SEO / META ===== -->
-  <title>Hairbey | Bursa Nilüfer Berber & Erkek Kuaförü — Online Randevu</title>
-  <meta name="description" content="Hairbey — Bursa Nilüfer Güngören Mahallesi'nde profesyonel berber ve erkek kuaförü. Saç kesimi, sakal tıraşı ve bakım hizmetleri. WhatsApp ile kolay randevu." />
-  <meta name="theme-color" content="#0d0d0f" />
-  <meta name="author" content="Hairbey" />
-
-  <!-- Open Graph (sosyal medya paylaşımı) -->
-  <meta property="og:title" content="Hairbey | Bursa Nilüfer Berber" />
-  <meta property="og:description" content="Profesyonel berber & erkek kuaförü. WhatsApp ile kolay randevu." />
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="tr_TR" />
-
-  <!-- ===== FONTLAR ===== -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
-  <!-- ===== STİL ===== -->
-  <link rel="stylesheet" href="css/styles.css" />
-
-  <!-- Favicon (basit makas emoji) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💈</text></svg>" />
-</head>
-
-<body>
-
-  <!-- ============================================================
-       NAVBAR
-  ============================================================ -->
-  <header class="navbar" id="navbar">
-    <div class="container nav-inner">
-      <a href="#hero" class="logo">
-        <span class="logo-mark">💈</span>
-        <span class="logo-text">Hair<span class="accent">bey</span></span>
-      </a>
-
-      <nav class="nav-links" id="navLinks" aria-label="Ana menü">
-        <a href="#hero" class="nav-link">Anasayfa</a>
-        <a href="#hizmetler" class="nav-link">Hizmetler</a>
-        <a href="#hakkimizda" class="nav-link">Hakkımızda</a>
-        <a href="#galeri" class="nav-link">Galeri</a>
-        <a href="#iletisim" class="nav-link">İletişim</a>
-        <a href="#randevu" class="btn btn-accent nav-cta">Randevu Al</a>
-      </nav>
-
-      <button class="hamburger" id="hamburger" aria-label="Menüyü aç/kapat" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </header>
-
-  <!-- ============================================================
-       HERO
-  ============================================================ -->
-  <section class="hero" id="hero">
-    <div class="hero-bg" aria-hidden="true"></div>
-    <div class="hero-overlay" aria-hidden="true"></div>
-
-    <div class="container hero-content">
-      <p class="hero-eyebrow reveal">BURSA NİLÜFER · ERKEK KUAFÖRÜ</p>
-      <h1 class="hero-title reveal">
-        Hairbey'de <span class="accent">Tarzını</span> Keşfet
-      </h1>
-      <p class="hero-sub reveal">
-        Modern berberlik, ustalık ve şıklık bir arada. Saç, sakal ve bakımda
-        profesyonel dokunuş — randevunu saniyeler içinde al.
-      </p>
-      <div class="hero-actions reveal">
-        <a href="#randevu" class="btn btn-accent">Hemen Randevu Al</a>
-        <a href="#hizmetler" class="btn btn-ghost">Hizmetlerimiz</a>
+    <!-- HUD overlay -->
+    <div id="hud">
+      <div id="hud-top">
+        <div id="hud-title">MONTAUK POINT · RANGER PATROL</div>
+        <div id="hud-badge"></div>
       </div>
-      <a href="tel:+905350454736" class="hero-phone reveal">📞 0535 045 47 36</a>
-    </div>
-
-    <a href="#hizmetler" class="scroll-down" aria-label="Aşağı kaydır">
-      <span></span>
-    </a>
-  </section>
-
-  <!-- ============================================================
-       HİZMETLER & FİYATLAR
-       (Fiyatları buradan düzenleyebilirsiniz — data-price değerleri
-        randevu formundaki seçeneklerle eşleşir.)
-  ============================================================ -->
-  <section class="section" id="hizmetler">
-    <div class="container">
-      <div class="section-head reveal">
-        <p class="eyebrow">FİYAT LİSTESİ</p>
-        <h2 class="section-title">Hizmetlerimiz</h2>
-        <p class="section-desc">İşinin ehli ekibimizle, her bütçeye uygun profesyonel bakım.</p>
-      </div>
-
-      <div class="services-grid">
-        <!-- Saç Kesimi -->
-        <article class="service-card reveal">
-          <div class="service-icon">✂️</div>
-          <h3>Saç Kesimi</h3>
-          <p>Yüz şekline uygun, modern ve şık kesim.</p>
-          <span class="price">550₺</span>
-        </article>
-
-        <!-- Saç + Sakal -->
-        <article class="service-card reveal">
-          <div class="service-icon">💈</div>
-          <h3>Saç + Sakal</h3>
-          <p>Komple bakım: saç kesimi ve sakal tasarımı bir arada.</p>
-          <span class="price">700₺</span>
-        </article>
-
-        <!-- Sakal Düzeltme -->
-        <article class="service-card reveal">
-          <div class="service-icon">🧔</div>
-          <h3>Sakal Düzeltme</h3>
-          <p>Hatlarına uygun keskin sakal şekillendirme.</p>
-          <span class="price">500₺</span>
-        </article>
-
-        <!-- Traş (EN UCUZ) -->
-        <article class="service-card featured reveal">
-          <span class="badge">En Uygun</span>
-          <div class="service-icon">🪒</div>
-          <h3>Traş</h3>
-          <p>Sıcak havlu ve klasik usturayla pürüzsüz traş.</p>
-          <span class="price">450₺</span>
-        </article>
-
-        <!-- Çocuk Saç Kesimi -->
-        <article class="service-card reveal">
-          <div class="service-icon">🧒</div>
-          <h3>Çocuk Saç Kesimi</h3>
-          <p>Minik müşterilerimiz için sabırlı ve eğlenceli kesim.</p>
-          <span class="price">500₺</span>
-        </article>
-
-        <!-- Saç Yıkama & Bakım -->
-        <article class="service-card reveal">
-          <div class="service-icon">🧴</div>
-          <h3>Saç Yıkama & Bakım</h3>
-          <p>Besleyici ürünlerle saç yıkama ve bakım ritüeli.</p>
-          <span class="price">600₺</span>
-        </article>
+      <div id="hud-count"></div>
+      <div id="hud-objective"></div>
+      <div id="hud-prompt"></div>
+      <div id="hud-speed">0 km/h</div>
+      <div id="hud-controls">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows to drive · <kbd>Space</kbd> brake
       </div>
     </div>
-  </section>
 
-  <!-- ============================================================
-       HAKKIMIZDA
-  ============================================================ -->
-  <section class="section section-alt" id="hakkimizda">
-    <div class="container about-grid">
-      <div class="about-img reveal" aria-hidden="true"></div>
-
-      <div class="about-text reveal">
-        <p class="eyebrow">HAKKIMIZDA</p>
-        <h2 class="section-title">Ustalık ve Tarz Bir Arada</h2>
-        <p>
-          Hairbey, Bursa Nilüfer'de erkek bakımını bir sanata dönüştürür.
-          Modern teknikleri klasik berberlik geleneğiyle birleştirerek, her
-          müşterimize özel, kusursuz bir deneyim sunuyoruz. Hijyen, kalite ve
-          memnuniyet bizim için her zaman önceliklidir.
-        </p>
-
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-num" data-count="8">0</span><span class="accent">+</span>
-            <small>Yıllık Tecrübe</small>
-          </div>
-          <div class="stat">
-            <span class="stat-num" data-count="5000">0</span><span class="accent">+</span>
-            <small>Mutlu Müşteri</small>
-          </div>
-          <div class="stat">
-            <span class="stat-num" data-count="100">0</span><span class="accent">%</span>
-            <small>Memnuniyet</small>
-          </div>
-        </div>
-
-        <div class="hours">
-          <h4>Çalışma Saatleri</h4>
-          <ul>
-            <li><span>Pazartesi – Cumartesi</span><span>09:00 – 21:00</span></li>
-            <li><span>Pazar</span><span>10:00 – 18:00</span></li>
-          </ul>
-        </div>
-
-        <a href="#randevu" class="btn btn-accent">Randevu Al</a>
+    <!-- Loading screen -->
+    <div id="loading">
+      <div id="loading-inner">
+        <div id="loading-logo">MONTAUK RANGER</div>
+        <div id="loading-sub">Loading real topography of Montauk Point, NY</div>
+        <div id="loading-track"><div id="loading-bar"></div></div>
+        <div id="loading-label">Starting…</div>
       </div>
     </div>
-  </section>
 
-  <!-- ============================================================
-       GALERİ
-  ============================================================ -->
-  <section class="section" id="galeri">
-    <div class="container">
-      <div class="section-head reveal">
-        <p class="eyebrow">ÇALIŞMALARIMIZ</p>
-        <h2 class="section-title">Galeri</h2>
-        <p class="section-desc">Salonumuzdan ve işlerimizden kareler.</p>
-      </div>
-
-      <!-- Görseller Unsplash'tan; kendi fotoğraflarınızla değiştirebilirsiniz.
-           assets/README.md dosyasına bakın. -->
-      <div class="gallery-grid">
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=70" alt="Berber koltuğu ve aynalar" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=70" alt="Saç kesimi yapılırken" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=70" alt="Sakal bakımı" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=70" alt="Berber malzemeleri" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=600&q=70" alt="Modern erkek saç modeli" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1634302086887-13b5585a8b8f?auto=format&fit=crop&w=600&q=70" alt="Usturayla traş" />
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       RANDEVU FORMU
-  ============================================================ -->
-  <section class="section section-alt" id="randevu">
-    <div class="container randevu-wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">RANDEVU</p>
-        <h2 class="section-title">Online Randevu Al</h2>
-        <p class="section-desc">
-          Formu doldur, "WhatsApp ile Gönder" de — randevu talebin anında bize ulaşsın.
-        </p>
-      </div>
-
-      <form class="randevu-form reveal" id="randevuForm" novalidate>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="ad">Ad Soyad</label>
-            <input type="text" id="ad" name="ad" placeholder="Adınız Soyadınız" required />
-          </div>
-          <div class="form-group">
-            <label for="telefon">Telefon</label>
-            <input type="tel" id="telefon" name="telefon" placeholder="05XX XXX XX XX" required />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="hizmet">Hizmet</label>
-            <select id="hizmet" name="hizmet" required>
-              <option value="" disabled selected>Hizmet seçin</option>
-              <option>Saç Kesimi — 550₺</option>
-              <option>Saç + Sakal — 700₺</option>
-              <option>Sakal Düzeltme — 500₺</option>
-              <option>Traş — 450₺</option>
-              <option>Çocuk Saç Kesimi — 500₺</option>
-              <option>Saç Yıkama & Bakım — 600₺</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="tarih">Tarih</label>
-            <input type="date" id="tarih" name="tarih" required />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="saat">Saat</label>
-            <!-- Saat seçenekleri js/script.js tarafından, seçilen tarihe göre
-                 (dolu / geçmiş saatler işaretlenerek) dinamik oluşturulur. -->
-            <select id="saat" name="saat" required>
-              <option value="" disabled selected>Önce tarih seçin</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="not">Not (opsiyonel)</label>
-            <input type="text" id="not" name="not" placeholder="Eklemek istedikleriniz" />
-          </div>
-        </div>
-
-        <p class="form-note">ℹ️ Dolu saatler "(Dolu)" olarak işaretlenir ve seçilemez. Geçmiş tarih/saatler kapalıdır.</p>
-        <p class="form-error" id="formError" role="alert"></p>
-
-        <button type="submit" class="btn btn-accent btn-block btn-whatsapp">
-          <svg viewBox="0 0 32 32" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.1 1.6 5.9L4 29l8.3-1.6c1.7.9 3.7 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.9 1 1-4.8-.3-.4C5.5 18.4 5 16.7 5 15 5 9 9.6 5 16 5s11 4.4 11 10-5 10-11 10zm5.4-7.6c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.2s-.8 1-.9 1.2c-.2.2-.3.2-.6.1-1.8-.9-3-1.6-4.2-3.6-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg>
-          WhatsApp ile Randevu Gönder
-        </button>
-      </form>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       İLETİŞİM
-  ============================================================ -->
-  <section class="section" id="iletisim">
-    <div class="container">
-      <div class="section-head reveal">
-        <p class="eyebrow">İLETİŞİM</p>
-        <h2 class="section-title">Bize Ulaşın</h2>
-      </div>
-
-      <div class="contact-grid">
-        <div class="contact-info reveal">
-          <a href="https://maps.google.com/?q=Güngören Mahallesi Karanfil Sokak No:2 Nilüfer Bursa" target="_blank" rel="noopener" class="contact-item">
-            <span class="ci-icon">📍</span>
-            <span><strong>Adres</strong>Güngören Mah. Karanfil Sok. No:2, Nilüfer / Bursa</span>
-          </a>
-          <a href="tel:+905350454736" class="contact-item">
-            <span class="ci-icon">📞</span>
-            <span><strong>Telefon</strong>0535 045 47 36</span>
-          </a>
-          <a href="mailto:melihyelbey1216@gmail.com" class="contact-item">
-            <span class="ci-icon">✉️</span>
-            <span><strong>E-posta</strong>melihyelbey1216@gmail.com</span>
-          </a>
-          <a href="https://instagram.com/melih_yelbey" target="_blank" rel="noopener" class="contact-item">
-            <span class="ci-icon">📸</span>
-            <span><strong>Instagram</strong>@melih_yelbey</span>
-          </a>
-        </div>
-
-        <div class="contact-map reveal">
-          <iframe
-            title="Hairbey Konum"
-            src="https://www.google.com/maps?q=Güngören%20Mahallesi%20Karanfil%20Sokak%20No:2%20Nilüfer%20Bursa&output=embed"
-            width="100%" height="100%" style="border:0;" loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       FOOTER
-  ============================================================ -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <span class="logo-text">Hair<span class="accent">bey</span></span>
-        <p>Bursa Nilüfer'in modern erkek kuaförü.</p>
-      </div>
-      <div class="footer-social">
-        <a href="https://instagram.com/melih_yelbey" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
-        <a href="https://wa.me/905350454736" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
-        <a href="tel:+905350454736" aria-label="Telefon">Telefon</a>
-      </div>
-    </div>
-    <p class="footer-copy">© <span id="year"></span> Hairbey · Tüm hakları saklıdır.</p>
-  </footer>
-
-  <!-- Sabit WhatsApp butonu -->
-  <a href="https://wa.me/905350454736" class="float-wa" target="_blank" rel="noopener" aria-label="WhatsApp ile yazın">
-    <svg viewBox="0 0 32 32" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.1 1.6 5.9L4 29l8.3-1.6c1.7.9 3.7 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.9 1 1-4.8-.3-.4C5.5 18.4 5 16.7 5 15 5 9 9.6 5 16 5s11 4.4 11 10-5 10-11 10zm5.4-7.6c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.2s-.8 1-.9 1.2c-.2.2-.3.2-.6.1-1.8-.9-3-1.6-4.2-3.6-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg>
-  </a>
-
-  <script src="js/script.js"></script>
-</body>
+    <script type="module" src="src/main.js"></script>
+  </body>
 </html>

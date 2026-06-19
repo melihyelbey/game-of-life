@@ -1,0 +1,239 @@
+{
+  "type": "FeatureCollection",
+  "crs": "local-meters (origin = terrain NW corner; x east, z south)",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Montauk Point State Parkway (NY-27)",
+        "roadType": "road"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            167.81166435297786,
+            2011.8280000000238
+          ],
+          [
+            587.3408252360186,
+            1768.6399999998052
+          ],
+          [
+            1090.7758182961445,
+            1635.9920000001143
+          ],
+          [
+            1594.2108113562706,
+            1547.5600000003205
+          ],
+          [
+            2097.6458044163965,
+            1525.452000000372
+          ],
+          [
+            2601.0807974765225,
+            1547.5600000003205
+          ],
+          [
+            2936.7041261836703,
+            1591.7760000002174
+          ],
+          [
+            3062.562874448106,
+            1569.6680000002689
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lighthouse parking loop",
+        "roadType": "road"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            3062.562874448106,
+            1569.6680000002689
+          ],
+          [
+            3121.2969569725424,
+            1525.452000000372
+          ],
+          [
+            3171.6404562778393,
+            1558.613999999902
+          ],
+          [
+            3138.0781234072438,
+            1624.9379999997475
+          ],
+          [
+            3062.562874448106,
+            1624.9379999997475
+          ],
+          [
+            3062.562874448106,
+            1569.6680000002689
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Camp Hero entrance road",
+        "roadType": "road"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1594.2108113562706,
+            1547.5600000003205
+          ],
+          [
+            1577.429644921569,
+            1879.180000000333
+          ],
+          [
+            1610.9919777921646,
+            2155.5300000000816
+          ],
+          [
+            1762.0224757104406,
+            2321.340000000088
+          ],
+          [
+            2013.7399722405037,
+            2376.6100000003516
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Radar tower spur",
+        "roadType": "road"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1577.429644921569,
+            1658.100000000063
+          ],
+          [
+            1694.8978099692497,
+            1525.452000000372
+          ],
+          [
+            1720.0695596218982,
+            1448.0740000001597
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Seal Haulout Trail",
+        "roadType": "trail"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            3062.562874448106,
+            1624.9379999997475
+          ],
+          [
+            3020.6099583607556,
+            1989.7200000000753
+          ],
+          [
+            2936.7041261836703,
+            2321.340000000088
+          ],
+          [
+            2726.93954574215,
+            2652.9600000001005
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Money Pond Trail",
+        "roadType": "trail"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            2936.7041261836703,
+            1591.7760000002174
+          ],
+          [
+            2726.93954574215,
+            1271.2099999997863
+          ],
+          [
+            2433.2691331235446,
+            1016.9679999999862
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lighthouse",
+        "name": "Montauk Point Lighthouse",
+        "poi": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          3160.732698094985,
+          1550.876199999802
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "radar",
+        "name": "Camp Hero Radar Tower",
+        "poi": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1720.0695596218982,
+          1448.0740000001597
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lookout",
+        "name": "Ranger Lookout Tower",
+        "poi": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1971.7870561519612,
+          1271.2099999997863
+        ]
+      }
+    }
+  ]
+}

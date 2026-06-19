@@ -2,3 +2,5 @@ node_modules/
 .netlify/
 .DS_Store
 *.log
+tools/.cache/
+tools/shot-*.png

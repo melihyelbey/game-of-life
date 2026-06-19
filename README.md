@@ -1,103 +1,89 @@
-# 💈 Hairbey — Berber Randevu Web Sitesi
+# 🚙 Montauk Ranger
 
-Bursa Nilüfer'deki **Hairbey** erkek kuaförü için modern, animasyonlu ve mobil uyumlu
-tek sayfalık web sitesi. Müşteriler hizmetleri görüp **WhatsApp üzerinden randevu** alabilir.
+A browser-based 3D driving game where you patrol **Montauk Point, NY** as a park ranger.
+The level is built from **real topographical data** of the Montauk peninsula, with an art
+direction inspired by **Firewatch** — bold warm dusk palette, flat-shaded low-poly terrain,
+distance-ramped colored fog, and a gradient sky that the land dissolves into at the horizon.
 
-## ✨ Özellikler
+![dusk · Montauk Point](assets/baked/heightmap.png)
 
-- Premium koyu + altın tasarım, akıcı animasyonlar (scroll-reveal, ken-burns hero, sayaç, hover efektleri)
-- Hizmet & fiyat listesi (Traş 450₺'den başlayan fiyatlar)
-- WhatsApp ile online randevu formu (sunucu/veritabanı gerektirmez)
-- Geçmiş tarih/saat seçimi engellenir; alınan saatler "Dolu" işaretlenip kapanır
-- Tıklanabilir telefon, e-posta, Instagram ve gömülü Google Harita
-- Tamamen responsive (mobil/tablet/masaüstü) ve erişilebilir (`prefers-reduced-motion` desteği)
-- **Backend (Netlify Functions + Blobs):** randevular kalıcı saklanır, dolu saatler **tüm cihazlarda ortak** görünür
-- **Yönetici paneli (`/admin`):** randevuları onayla / iptal et / ertele / sil — her işlemde müşteriye otomatik WhatsApp bildirimi açılır
+## Play
 
-## 📁 Dosya Yapısı
-
-```
-index.html                → Müşteri sayfası
-admin.html                → Yönetici paneli (/admin)
-css/styles.css            → Tasarım sistemi ve animasyonlar
-js/script.js              → Form, menü, animasyon + backend bağlantısı
-js/admin.js               → Yönetici paneli mantığı
-netlify/functions/        → Serverless backend
-  _lib.js                 → Ortak yardımcılar (Netlify Blobs)
-  availability.js         → GET /api/availability (dolu saatler — herkese açık)
-  book.js                 → POST /api/book (randevu oluştur)
-  admin-appointments.js   → Yönetici uçları (şifre korumalı)
-netlify.toml              → Netlify yapılandırması
-package.json              → Backend bağımlılığı (@netlify/blobs)
-assets/                   → Kendi fotoğraflarınız için
-```
-
-## 🚀 Çalıştırma
-
-Bağımlılık yok. Sadece `index.html` dosyasını bir tarayıcıda açın.
-
-İsterseniz basit bir yerel sunucuyla:
+It's plain HTML + CSS + ES modules (Three.js via CDN import map) — **no build step**.
+Serve the folder over HTTP (ES modules and `fetch` don't work from `file://`):
 
 ```bash
-# Python ile
-python3 -m http.server 8000
-# Tarayıcıda: http://localhost:8000
+npm start          # python3 -m http.server 8080
+# then open http://localhost:8080/
 ```
 
-## ✏️ Düzenleme
+**Controls:** `W A S D` or arrow keys to drive, `Space` to brake. Drive to the lighthouse,
+the Camp Hero radar tower, and the ranger lookout to log them.
 
-- **Fiyatlar / hizmetler:** `index.html` içindeki `#hizmetler` bölümü ve randevu formundaki
-  `<select id="hizmet">` seçenekleri (ikisini de güncelleyin).
-- **İletişim bilgileri:** `index.html` içindeki `#iletisim` bölümü ve footer.
-- **WhatsApp numarası:** `js/script.js` dosyasının başındaki `WHATSAPP_NUMBER` değişkeni.
-- **Randevu saat aralığı:** `js/script.js` içindeki `TIME_SLOTS` dizisi (çalışma saatlerinize göre düzenleyin).
-- **Renkler / fontlar:** `css/styles.css` dosyasının en üstündeki `:root` değişkenleri.
-- **Fotoğraflar:** `assets/README.md` dosyasına bakın.
+## Real topography
 
-## 🌐 Yayınlama (Netlify — backend dahil)
+The terrain is generated from **AWS Terrain Tiles** (Mapzen/OpenTopography "Terrarium"
+RGB-encoded elevation, public domain, no API key), sampled over the Montauk Point bounding
+box and baked into static assets:
 
-Backend ve yönetici panelinin çalışması için site **Netlify'a GitHub üzerinden bağlanarak**
-yayınlanmalıdır (sürükle-bırak yöntemi fonksiyonları/Blobs'u çalıştırmaz).
+| Asset | What it is |
+| --- | --- |
+| `assets/baked/heightmap.png` | Elevation packed into the R (high byte) + G (low byte) channels |
+| `assets/baked/heightmap.meta.json` | Grid size, bbox, min/max elevation, meters-per-pixel, world size |
+| `assets/baked/roads.geojson` | Road/trail network + landmark points, pre-projected to local meters |
+| `assets/baked/manifest.json` | Data provenance (real DEM vs procedural fallback) |
 
-1. [app.netlify.com](https://app.netlify.com) → **Add new site → Import an existing project → GitHub**.
-2. `melihyelbey/game-of-life` deposunu ve `claude/hairbey-booking-system-sdg3j2` dalını seçin.
-3. Build komutu **boş**, publish dizini **`.`** (kök). **Deploy** deyin.
-4. **Site configuration → Environment variables** bölümüne şu değişkenleri ekleyin:
-   - `ADMIN_EMAIL` = `melihyelbey1216@gmail.com`
-   - `ADMIN_PASSWORD` = `Me5350454736`
-   Ardından **Deploys → Trigger deploy** ile yeniden yayınlayın.
-   *(Bu değerlerle yalnızca bu e-posta + şifre ikilisi panele girebilir. Şifre kodda
-   tutulmaz, yalnızca burada saklanır; istediğiniz zaman bu ekrandan değiştirebilirsiniz.)*
-5. Netlify Blobs otomatik etkindir; ekstra veritabanı kurulumu **gerekmez**.
+The runtime never hits the network for map data — everything is baked.
 
-> **Yerel test:** `npm install` sonrası `npx netlify dev` çalıştırın. Netlify Dev,
-> yerel bir Blobs sanal alanı sağlar; `ADMIN_PASSWORD`'ü `.env` dosyasına yazabilirsiniz.
+### Re-baking the data
 
-## 🔐 Yönetici Paneli (`/admin`)
+```bash
+npm install        # dev dependency: pngjs (used only by the bake scripts)
+npm run bake       # downloads Terrarium tiles + writes heightmap, then bakes roads
+```
 
-- Adres: `https://<siteniz>.netlify.app/admin`
-- Giriş: Netlify'da tanımladığınız `ADMIN_EMAIL` + `ADMIN_PASSWORD` ile yapılır.
-  Sadece bu e-posta/şifre ikilisi panele erişebilir.
-- Her randevu için:
-  - **Onayla** → durum "Onaylı" olur, müşteriye onay WhatsApp mesajı açılır.
-  - **İptal Et** → durum "İptal" olur, saat boşa düşer, müşteriye iptal mesajı açılır.
-  - **Ertele** → yeni tarih/saat seçip kaydedin; müşteriye güncelleme mesajı açılır.
-  - **Sil** → kaydı kalıcı kaldırır (müşteriye mesaj gitmez).
-- İptal/silinen randevuların saati otomatik olarak yeniden **boş** görünür.
+- `tools/prefetch.mjs` downloads the Terrarium elevation tiles covering the Montauk bbox
+  (`tools/lib/tilemath.mjs` for slippy/Web-Mercator math, `tools/lib/terrarium.mjs` to
+  decode + stitch them), crops to the area of interest, downsamples, and writes the
+  heightmap. If the elevation host is unreachable it falls back to a procedurally generated
+  Montauk-shaped heightmap and flags `manifest.real = false` (the HUD then shows a
+  "PLACEHOLDER TERRAIN" badge).
+- `tools/bake-roads.mjs` projects the Montauk road/trail network and landmarks (lighthouse,
+  Camp Hero radar tower, ranger lookout) from real lat/lon into the same local-meter space
+  as the terrain. The OSM Overpass API is blocked in some sandboxes, so this network is
+  authored from real coordinates; swapping in a live Overpass fetch is a drop-in change.
 
-> **Not:** WhatsApp bildirimleri, müşterinin numarasına önceden yazılmış mesajla
-> WhatsApp'ı açar; göndermek için "gönder"e basmanız yeterlidir (wa.me yöntemi).
-> Tek tuşla tam otomatik gönderim için ücretli WhatsApp Business API gerekir.
+## Architecture
 
-## ⏰ Backend yoksa ne olur?
+```
+index.html            entry: import map + canvas + HUD overlay
+css/game.css          HUD + loading screen
+src/
+  main.js             bootstrap: load data, build scene, run the drive loop
+  config.js           one place for bbox-derived scales, palette, vehicle/camera tuning
+  world/
+    DataLoader.js     loads + decodes the baked assets
+    HeightField.js    bilinear terrain height + slope-normal sampling (drives physics)
+    Terrain.js        heightmap -> flat-shaded low-poly mesh + sea plane
+    Roads.js          GeoJSON -> ribbon meshes draped on the terrain
+    PointsOfInterest.js  low-poly lighthouse / radar tower / lookout at real coords
+    Sky.js            gradient sky dome (horizon matches the far-fog color)
+  render/
+    FogRamp.js        Firewatch distance-color fog (Material.onBeforeCompile patch)
+    Lighting.js       warm dusk key light + sky/ground hemisphere
+  vehicle/
+    Vehicle.js        arcade ground-following truck physics
+    Input.js          keyboard state
+    ChaseCamera.js    spring-damped chase camera
+  ui/
+    Hud.js            speed, objectives, POI prompts, data-provenance badge
+    Loading.js        loading-screen controller
+tools/                data bake pipeline (Node, dev-only)
+```
 
-Site backend'siz (ör. dosyayı çift tıklayıp veya sade statik hostta) açılırsa
-otomatik olarak `localStorage` yedeğine düşer; dolu saatler yalnızca o tarayıcıda
-geçerli olur. Netlify üzerinde yayınlandığında ise tüm cihazlarda ortak çalışır.
+## Credits / data
 
-## 📞 İletişim
-
-- **Adres:** Güngören Mah. Karanfil Sok. No:2, Nilüfer / Bursa
-- **Telefon:** 0535 045 47 36
-- **E-posta:** melihyelbey1216@gmail.com
-- **Instagram:** [@melih_yelbey](https://instagram.com/melih_yelbey)
+- Elevation: [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) (Terrarium),
+  derived from public-domain sources (USGS 3DEP, SRTM, et al.).
+- Rendering: [Three.js](https://threejs.org/).
+- Art direction inspired by [Firewatch](https://www.firewatchgame.com/) (Campo Santo).

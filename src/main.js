@@ -6,6 +6,7 @@ import { loadWorld } from "./world/DataLoader.js";
 import { HeightField, downsampleHeights } from "./world/HeightField.js";
 import { buildTerrain } from "./world/Terrain.js";
 import { buildScatter } from "./world/Scatter.js";
+import { ObstacleField } from "./world/ObstacleField.js";
 import { buildRoads } from "./world/Roads.js";
 import { buildPOIs } from "./world/PointsOfInterest.js";
 import { buildSky } from "./world/Sky.js";
@@ -63,10 +64,16 @@ async function main() {
   scene.add(buildSky(worldSize * 4));
   scene.add(buildLighting(worldSize));
   scene.add(buildTerrain(heightField, surfMeta));
-  scene.add(buildScatter(heightField, isMobile ? 0.5 : 1));
+  const scatter = buildScatter(heightField, isMobile ? 0.5 : 1);
+  scene.add(scatter.group);
   scene.add(buildRoads(roads, heightField));
   const { group: poiGroup, pois } = buildPOIs(roads, heightField);
   scene.add(poiGroup);
+
+  // spatial collision field: solid landmarks + tree trunks
+  const obstacleField = new ObstacleField(14);
+  obstacleField.addMany(pois.map((p) => ({ x: p.position.x, z: p.position.z, radius: p.radius })));
+  obstacleField.addMany(scatter.colliders);
 
   // --- spawn the ranger near the lighthouse parking, facing inland (west) ---
   const lighthouse = pois.find((p) => p.id === "lighthouse");
@@ -75,8 +82,7 @@ async function main() {
     : { x: meta.widthMeters * 0.6, z: meta.heightMeters * 0.5 };
   const vehicle = new Vehicle(heightField, spawn.x, spawn.z);
   vehicle.heading = -Math.PI / 2; // face west, toward the park
-  // solid landmarks the truck bumps into
-  vehicle.obstacles = pois.map((p) => ({ x: p.position.x, z: p.position.z, radius: p.radius }));
+  vehicle.obstacleField = obstacleField;
   scene.add(vehicle.mesh);
 
   const input = new Input();

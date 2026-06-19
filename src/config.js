@@ -39,11 +39,12 @@ export const CONFIG = {
   terrain: { segmentsDesktop: 384, segmentsMobile: 224 },
 
   vehicle: {
-    maxSpeed: 30,        // m/s forward (~108 km/h)
-    maxReverse: 10,
-    accel: 22,           // m/s^2
-    brake: 36,
-    drag: 0.92,          // passive deceleration factor toward 0
+    maxSpeed: 38,        // m/s forward (~137 km/h)
+    maxReverse: 12,
+    accel: 26,           // m/s^2
+    brake: 40,           // m/s^2 deceleration when braking
+    drag: 0.9,           // aero coast: fraction of speed retained per SECOND
+    rollResist: 2.2,     // m/s^2 rolling resistance that brings a coast to rest
     steerRate: 2.0,      // rad/s at full lock
     grip: 3.2,           // how fast heading aligns to travel
     rideHeight: 0.9,     // body center above ground

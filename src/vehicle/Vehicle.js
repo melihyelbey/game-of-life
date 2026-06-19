@@ -12,8 +12,8 @@ export class Vehicle {
     this.position = new THREE.Vector3(startX, 0, startZ);
     this.heading = Math.PI;
     this.speed = 0;
-    this.obstacles = []; // [{x, z, radius}] solid landmarks to bump into
-    this.carRadius = 1.6;
+    this.obstacleField = null; // spatial hash of solid landmarks + trees
+    this.carRadius = 1.2;
     this._wheelSpin = 0;
     this._roll = 0;        // smoothed body roll from steering
     this._steerVis = 0;    // smoothed visual steer angle for front wheels
@@ -82,11 +82,23 @@ export class Vehicle {
   update(dt, input) {
     const c = this.cfg;
 
-    // longitudinal: throttle / brake-reverse / coast
-    if (input.forward > 0) this.speed += c.accel * dt;
-    else if (input.forward < 0) this.speed -= c.brake * 0.6 * dt; // brake then reverse
-    else this.speed *= Math.pow(c.drag, dt * 60);
-    if (input.brake) this.speed *= Math.pow(0.8, dt * 60);
+    // longitudinal: throttle / brake-reverse / gentle coast
+    if (input.forward > 0) {
+      this.speed += c.accel * dt;
+    } else if (input.forward < 0) {
+      this.speed -= c.accel * 0.85 * dt; // brake, then accelerate into reverse
+    } else {
+      // coast: light aero drag (per-second) + constant rolling resistance to a stop
+      this.speed *= Math.pow(c.drag, dt);
+      const rr = c.rollResist * dt;
+      if (Math.abs(this.speed) <= rr) this.speed = 0;
+      else this.speed -= Math.sign(this.speed) * rr;
+    }
+    if (input.brake) {
+      const bd = c.brake * dt;
+      if (Math.abs(this.speed) <= bd) this.speed = 0;
+      else this.speed -= Math.sign(this.speed) * bd;
+    }
     this.speed = THREE.MathUtils.clamp(this.speed, -c.maxReverse, c.maxSpeed);
     if (Math.abs(this.speed) < 0.02) this.speed = 0;
 
@@ -101,16 +113,25 @@ export class Vehicle {
     let nx = this.position.x + fx * this.speed * dt;
     let nz = this.position.z + fz * this.speed * dt;
 
-    // solid landmark collision: push the truck back out and kill momentum (a real bump)
-    for (const o of this.obstacles) {
-      const dx = nx - o.x;
-      const dz = nz - o.z;
-      const minDist = o.radius + this.carRadius;
-      const dist = Math.hypot(dx, dz);
-      if (dist < minDist && dist > 1e-3) {
-        nx = o.x + (dx / dist) * minDist;
-        nz = o.z + (dz / dist) * minDist;
-        this.speed *= -0.25; // bounce back
+    // Solid collision (towers + trees). Push out to the boundary and only damp the
+    // velocity component heading INTO the obstacle — tangential motion is preserved so
+    // you slide smoothly past instead of sticking when grazing an edge.
+    if (this.obstacleField) {
+      const near = this.obstacleField.queryNear(nx, nz);
+      for (const o of near) {
+        const dx = nx - o.x;
+        const dz = nz - o.z;
+        const minDist = o.radius + this.carRadius;
+        const dist = Math.hypot(dx, dz);
+        if (dist < minDist && dist > 1e-4) {
+          const nrmX = dx / dist;
+          const nrmZ = dz / dist;
+          nx = o.x + nrmX * minDist; // place exactly on the boundary
+          nz = o.z + nrmZ * minDist;
+          const heelingIn = fx * nrmX + fz * nrmZ; // <0 => moving into the obstacle
+          if (this.speed * heelingIn < 0) this.speed *= -0.2; // head-on bump
+          // grazing (heelingIn ~ 0): keep speed -> slides around
+        }
       }
     }
 

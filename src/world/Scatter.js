@@ -62,7 +62,7 @@ function bushGeometry() {
   return mergeColored([{ geo: a, color: 0x6f8348 }]);
 }
 
-function scatterInstanced(geo, count, heightField, opts) {
+function scatterInstanced(geo, count, heightField, opts, colliders) {
   const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
   applyFogRamp(mat);
   const mesh = new THREE.InstancedMesh(geo, mat, count);
@@ -89,6 +89,9 @@ function scatterInstanced(geo, count, heightField, opts) {
     dummy.scale.setScalar(s);
     dummy.updateMatrix();
     mesh.setMatrixAt(placed, dummy.matrix);
+    if (colliders && opts.collideRadius) {
+      colliders.push({ x, z, radius: opts.collideRadius * (0.7 + 0.3 * s) });
+    }
     placed++;
   }
   mesh.count = placed;
@@ -96,18 +99,21 @@ function scatterInstanced(geo, count, heightField, opts) {
   return mesh;
 }
 
-// Returns a Group of instanced pines + bushes for the whole map.
+// Returns { group, colliders } — instanced pines (solid) + bushes (drive-over) for the
+// whole map. colliders is the list of tree-trunk obstacles fed to the ObstacleField.
 export function buildScatter(heightField, density = 1) {
   const group = new THREE.Group();
+  const colliders = [];
   group.add(
     scatterInstanced(pineGeometry(), Math.round(900 * density), heightField, {
       minHeight: 2.0, maxSlope: 0.32, scaleMin: 0.8, scaleMax: 1.9, seed: 1234,
-    })
+      collideRadius: 0.7,
+    }, colliders)
   );
   group.add(
     scatterInstanced(bushGeometry(), Math.round(700 * density), heightField, {
       minHeight: 1.0, maxSlope: 0.42, scaleMin: 0.7, scaleMax: 1.6, seed: 5678,
-    })
+    }, null)
   );
-  return group;
+  return { group, colliders };
 }

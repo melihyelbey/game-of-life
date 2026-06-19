@@ -32,18 +32,22 @@ export const CONFIG = {
     trail: 0xb08a55,
   },
 
-  fog: { near: 120, far: 2600 },
+  fog: { near: 140, far: 2700 },
+
+  // Terrain render mesh resolution (independent of the full-res height sampling used for
+  // physics). Lower = fewer triangles = smoother on phones. Chosen per-device in main.js.
+  terrain: { segmentsDesktop: 384, segmentsMobile: 224 },
 
   vehicle: {
-    maxSpeed: 28,        // m/s forward (~100 km/h)
-    maxReverse: 9,
-    accel: 18,           // m/s^2
-    brake: 34,
-    drag: 0.9,           // passive deceleration factor toward 0
-    steerRate: 1.7,      // rad/s at full lock
+    maxSpeed: 30,        // m/s forward (~108 km/h)
+    maxReverse: 10,
+    accel: 22,           // m/s^2
+    brake: 36,
+    drag: 0.92,          // passive deceleration factor toward 0
+    steerRate: 2.0,      // rad/s at full lock
     grip: 3.2,           // how fast heading aligns to travel
     rideHeight: 0.9,     // body center above ground
-    tiltResponse: 4.0,   // how fast body aligns to slope normal
+    tiltResponse: 5.0,   // how fast body aligns to slope normal
   },
 
   camera: {

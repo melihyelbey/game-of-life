@@ -15,9 +15,11 @@ html, body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   color: #fff;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  touch-action: none; /* no pinch-zoom / pull-to-refresh stealing drags */
 }
 
-#game { display: block; width: 100vw; height: 100vh; }
+#game { display: block; width: 100vw; height: 100vh; touch-action: none; }
 
 /* ---------- HUD ---------- */
 #hud {
@@ -127,6 +129,94 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.25);
   font-family: inherit;
   font-size: 11px;
+}
+
+/* ---------- Touch controls ---------- */
+#touch { display: none; }
+
+/* show on touch devices, or whenever JS flags the body as mobile */
+@media (pointer: coarse) {
+  #touch { display: block; }
+}
+body.is-mobile #touch { display: block; }
+
+#touch {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+#touch .pad {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+#touch .pad-left { left: max(18px, env(safe-area-inset-left)); }
+#touch .pad-right {
+  right: max(18px, env(safe-area-inset-right));
+  align-items: flex-end;
+}
+#touch .col { display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+
+.tbtn {
+  pointer-events: auto;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(20, 32, 46, 0.4);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: transform 0.06s ease, background 0.1s ease;
+}
+.tbtn:active {
+  transform: scale(0.92);
+  background: rgba(242, 201, 138, 0.55);
+  color: #14202e;
+}
+.tbtn-gas {
+  width: 92px;
+  height: 92px;
+  font-size: 32px;
+  border-color: rgba(242, 201, 138, 0.7);
+  background: rgba(217, 138, 90, 0.45);
+}
+.tbtn-sm { width: 62px; height: 62px; font-size: 22px; }
+
+/* keep the keyboard hint out of the way on touch */
+@media (pointer: coarse) {
+  #hud-controls { display: none; }
+  #hud-prompt { bottom: 130px; }
+}
+
+/* tighter HUD on small / short screens — stack the top bar so nothing collides */
+@media (max-width: 560px) {
+  #hud-title { font-size: 11px; letter-spacing: 1.5px; }
+  #hud-badge { font-size: 9px; }
+  /* move the landmark counter under the badge on the left to clear the title */
+  #hud-count { top: 76px; left: 20px; right: auto; font-size: 11px; }
+  #hud-objective { top: 96px; right: auto; left: 20px; }
+  #hud-speed { font-size: 22px; bottom: 130px; right: 18px; }
+  #hud-prompt { font-size: 12px; bottom: 220px; padding: 6px 12px; }
+}
+
+/* shrink the on-screen buttons on very narrow phones */
+@media (max-width: 380px) {
+  .tbtn { width: 64px; height: 64px; font-size: 22px; }
+  .tbtn-gas { width: 80px; height: 80px; }
+  .tbtn-sm { width: 54px; height: 54px; font-size: 19px; }
 }
 
 /* ---------- Loading ---------- */

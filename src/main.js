@@ -29,10 +29,15 @@ async function main() {
   const { meta, manifest, heights, roads } = world;
   const heightField = new HeightField(heights, meta);
 
+  // coarse pointer + no hover => treat as a touch device (phones/tablets)
+  const isMobile =
+    window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+  if (isMobile) document.body.classList.add("is-mobile");
+
   // --- renderer / scene / camera ---
   const canvas = document.getElementById("game");
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -47,9 +52,12 @@ async function main() {
   );
 
   // --- world content ---
+  const segments = isMobile
+    ? CONFIG.terrain.segmentsMobile
+    : CONFIG.terrain.segmentsDesktop;
   scene.add(buildSky(worldSize * 4));
   scene.add(buildLighting(worldSize));
-  scene.add(buildTerrain(heightField, meta));
+  scene.add(buildTerrain(heightField, meta, segments));
   scene.add(buildRoads(roads, heightField));
   const { group: poiGroup, pois } = buildPOIs(roads, heightField);
   scene.add(poiGroup);
@@ -76,12 +84,19 @@ async function main() {
   loading.hide();
 
   // --- main loop ---
+  const baseFov = CONFIG.camera.fov;
   const clock = new THREE.Clock();
   function frame() {
     const dt = Math.min(0.05, clock.getDelta());
     vehicle.update(dt, input.state);
     chase.update(dt, vehicle);
     hud.update(vehicle);
+
+    // subtle FOV widening with speed for a sense of momentum
+    const targetFov = baseFov + (Math.abs(vehicle.speed) / CONFIG.vehicle.maxSpeed) * 9;
+    camera.fov += (targetFov - camera.fov) * Math.min(1, 3 * dt);
+    camera.updateProjectionMatrix();
+
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }

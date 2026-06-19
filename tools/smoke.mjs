@@ -1,56 +1,82 @@
-// Headless smoke test: serve the game, load it, drive a few seconds, capture console
-// errors + screenshots. Not shipped — a dev verification helper.
+// Headless smoke test: serve the game, load it on desktop AND emulated mobile, drive a
+// few seconds (keyboard on desktop, on-screen buttons on mobile), capture console errors
+// + screenshots. Not shipped — a dev verification helper.
 import { chromium } from "playwright";
 
 const URL = process.env.URL || "http://localhost:8080/";
 
-const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+async function run(label, contextOpts, drive) {
+  const browser = await chromium.launch();
+  const context = await browser.newContext(contextOpts);
+  const page = await context.newPage();
 
-const errors = [];
-page.on("console", (m) => {
-  if (m.type() === "error") errors.push(`console.error: ${m.text()}`);
-});
-page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+  const errors = [];
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("pageerror", (e) => errors.push(e.message));
 
-await page.goto(URL, { waitUntil: "load" });
+  await page.goto(URL, { waitUntil: "load" });
 
-// wait for the loading overlay to be hidden (world built) or time out
-let loaded = false;
-try {
-  await page.waitForFunction(
-    () => {
-      const el = document.getElementById("loading");
-      return el && (el.classList.contains("hidden") || el.style.display === "none");
-    },
-    { timeout: 20000 }
-  );
-  loaded = true;
-} catch {
-  loaded = false;
+  let loaded = false;
+  try {
+    await page.waitForFunction(
+      () => {
+        const el = document.getElementById("loading");
+        return el && (el.classList.contains("hidden") || el.style.display === "none");
+      },
+      { timeout: 20000 }
+    );
+    loaded = true;
+  } catch {}
+
+  await drive(page);
+  await page.screenshot({ path: `tools/shot-${label}.png` });
+
+  const info = await page.evaluate(() => ({
+    speed: document.getElementById("hud-speed")?.textContent,
+    badge: document.getElementById("hud-badge")?.textContent,
+    count: document.getElementById("hud-count")?.textContent,
+    touchVisible: getComputedStyle(document.getElementById("touch")).display !== "none",
+    mobileClass: document.body.classList.contains("is-mobile"),
+  }));
+
+  await browser.close();
+  const ok = loaded && errors.length === 0;
+  console.log(`[${label}] loaded=${loaded} ok=${ok} HUD=${JSON.stringify(info)}`);
+  if (errors.length) console.log(`[${label}] errors:`, errors);
+  return ok;
 }
 
-await page.screenshot({ path: "tools/shot-start.png" });
+// desktop: keyboard
+const desktopOk = await run(
+  "desktop",
+  { viewport: { width: 1280, height: 720 } },
+  async (page) => {
+    await page.keyboard.down("w");
+    await page.waitForTimeout(2200);
+    await page.keyboard.down("a");
+    await page.waitForTimeout(1200);
+    await page.keyboard.up("a");
+    await page.keyboard.up("w");
+  }
+);
 
-// drive forward + steer for a few seconds
-await page.keyboard.down("w");
-await page.waitForTimeout(2500);
-await page.keyboard.down("a");
-await page.waitForTimeout(1500);
-await page.keyboard.up("a");
-await page.keyboard.up("w");
-await page.screenshot({ path: "tools/shot-drive.png" });
+// mobile: touch buttons
+const press = async (page, sel, ms) => {
+  const box = await page.locator(sel).boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+};
+const mobileOk = await run(
+  "mobile",
+  { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
+  async (page) => {
+    // hold gas, then gas + steer (sequential since single mouse pointer)
+    await press(page, "#btn-gas", 2200);
+    await press(page, "#btn-left", 1000);
+  }
+);
 
-const hud = await page.evaluate(() => ({
-  speed: document.getElementById("hud-speed")?.textContent,
-  badge: document.getElementById("hud-badge")?.textContent,
-  count: document.getElementById("hud-count")?.textContent,
-  prompt: document.getElementById("hud-prompt")?.textContent,
-}));
-
-await browser.close();
-
-console.log("loaded:", loaded);
-console.log("HUD:", JSON.stringify(hud));
-console.log("errors:", errors.length ? errors : "none");
-process.exit(loaded && errors.length === 0 ? 0 : 1);
+console.log(desktopOk && mobileOk ? "SMOKE PASS" : "SMOKE FAIL");
+process.exit(desktopOk && mobileOk ? 0 : 1);

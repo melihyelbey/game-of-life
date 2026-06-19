@@ -7,7 +7,7 @@ import { HeightField, downsampleHeights } from "./world/HeightField.js";
 import { buildTerrain } from "./world/Terrain.js";
 import { buildScatter } from "./world/Scatter.js";
 import { ObstacleField } from "./world/ObstacleField.js";
-import { buildRamp } from "./world/Ramp.js";
+import { buildCourse, buildConfetti } from "./world/Course.js";
 import { buildRoads } from "./world/Roads.js";
 import { buildPOIs } from "./world/PointsOfInterest.js";
 import { buildSky } from "./world/Sky.js";
@@ -82,16 +82,17 @@ async function main() {
     ? { x: lighthouse.position.x - 60, z: lighthouse.position.z + 20 }
     : { x: meta.widthMeters * 0.6, z: meta.heightMeters * 0.5 };
 
-  // --- test ramp: straight ahead (west) of the spawn, so you can floor it and fly ---
-  const rampHeading = -Math.PI / 2;
-  const rampStart = { x: spawn.x - 62, z: spawn.z };
-  const rampBaseY = heightField.getHeight(rampStart.x, rampStart.z);
-  const ramp = buildRamp({
-    x0: rampStart.x, z0: rampStart.z, heading: rampHeading,
-    length: 34, height: 15, width: 12, baseY: rampBaseY,
-  });
-  scene.add(ramp.group);
-  heightField.addFeature(ramp.feature);
+  // --- "Ranger Ascent" parkour: a climbing course of ramps + platforms + a jump gap,
+  // straight ahead (west) of the spawn, ending at a summit flag. ---
+  const courseOrigin = { x: spawn.x - 62, z: spawn.z, heading: -Math.PI / 2 };
+  const course = buildCourse(heightField, courseOrigin);
+  scene.add(course.group);
+  for (const f of course.features) heightField.addFeature(f);
+
+  const confetti = buildConfetti();
+  scene.add(confetti.points);
+
+  const courseGroundY = heightField.getHeight(courseOrigin.x, courseOrigin.z);
 
   const vehicle = new Vehicle(heightField, spawn.x, spawn.z);
   vehicle.heading = -Math.PI / 2; // face west, toward the park & the ramp
@@ -112,20 +113,45 @@ async function main() {
 
   // optional debug handle (only when the page is opened with ?debug) for verification
   if (new URLSearchParams(location.search).has("debug")) {
-    window.__game = {
-      vehicle, pois, heightField,
-      ramp: { x0: rampStart.x, z0: rampStart.z, heading: rampHeading, length: 34, height: 15 },
-    };
+    window.__game = { vehicle, pois, heightField, course };
   }
 
   // --- main loop ---
   const baseFov = CONFIG.camera.fov;
   const clock = new THREE.Clock();
+  let armed = false;    // becomes true once the truck is up on the course
+  let finished = false; // summit flag already triggered
   function frame() {
     const dt = Math.min(0.05, clock.getDelta());
     vehicle.update(dt, input.state);
     chase.update(dt, vehicle);
     hud.update(vehicle);
+
+    // --- parkour: fall -> back to the start, reach the flag -> raise it + confetti ---
+    const onFeature = heightField.getFeatureHeight(vehicle.position.x, vehicle.position.z);
+    if (!vehicle.airborne && onFeature !== null && vehicle.position.y > courseGroundY + 4) {
+      armed = true; // climbed up onto the course
+    }
+    if (armed && !vehicle.airborne && onFeature === null &&
+        vehicle.position.y < courseGroundY + 1.5) {
+      vehicle.respawn(course.startPose.x, course.startPose.z, course.startPose.heading);
+      armed = false;
+      hud.flash("Düştün! Baştan başla.");
+    }
+    if (!finished && course.flag) {
+      const fx = course.flag.base.x - vehicle.position.x;
+      const fz = course.flag.base.z - vehicle.position.z;
+      if (Math.hypot(fx, fz) < course.flag.triggerRadius &&
+          vehicle.position.y > courseGroundY + 8) {
+        finished = true;
+        armed = false;
+        course.flag.raise();
+        confetti.burst(course.flag.summitTop);
+        hud.flash("🎉 Zirveye ulaştın!");
+      }
+    }
+    if (course.flag) course.flag.update(dt);
+    confetti.update(dt);
 
     // subtle FOV widening with speed for a sense of momentum
     const targetFov = baseFov + (Math.abs(vehicle.speed) / CONFIG.vehicle.maxSpeed) * 9;

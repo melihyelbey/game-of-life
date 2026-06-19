@@ -83,6 +83,21 @@ export class Vehicle {
     this.position.y = this.hf.getHeight(this.position.x, this.position.z);
   }
 
+  // Teleport the truck to a fresh pose and clear all motion (used to send the player back
+  // to the start of the parkour course after a fall).
+  respawn(x, z, heading = this.heading) {
+    this.position.set(x, 0, z);
+    this.heading = heading;
+    this.speed = 0;
+    this.vy = 0;
+    this.airborne = false;
+    this.airVel.x = 0;
+    this.airVel.z = 0;
+    this._pitch = 0;
+    this._snapToGround();
+    this.mesh.position.copy(this.position);
+  }
+
   update(dt, input) {
     const c = this.cfg;
     const grounded = !this.airborne;

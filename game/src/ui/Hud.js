@@ -48,6 +48,11 @@ export class Hud {
     }
   }
 
+  // public: show a transient banner (course messages: falls, summit, etc.)
+  flash(text) {
+    this._flashObjective(text);
+  }
+
   _flashObjective(text) {
     if (!this.objEl) return;
     this.objEl.textContent = text;

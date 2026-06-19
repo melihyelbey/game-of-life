@@ -1,0 +1,283 @@
+:root {
+  --warm: #e8a06a;
+  --gold: #f2c98a;
+  --dusk: #1f3a5f;
+  --ink: #14202e;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #14202e;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  touch-action: none; /* no pinch-zoom / pull-to-refresh stealing drags */
+}
+
+#game { display: block; width: 100vw; height: 100vh; touch-action: none; }
+
+/* Cinematic vignette — subtle darkening at the edges, pure CSS, zero cost. */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(10, 16, 24, 0.45) 100%);
+}
+
+/* ---------- HUD ---------- */
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#hud-top {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#hud-title {
+  font-size: 14px;
+  letter-spacing: 3px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+#hud-badge {
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  align-self: flex-start;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+#hud-badge.real { color: #bfe6b0; border: 1px solid rgba(150, 220, 130, 0.5); }
+#hud-badge.placeholder { color: #f0c060; border: 1px solid rgba(240, 190, 80, 0.5); }
+
+#hud-count {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #dfeaf2;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+#hud-objective {
+  position: absolute;
+  top: 52px;
+  right: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.4s, transform 0.4s;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+#hud-objective.flash { opacity: 1; transform: translateY(0); }
+
+/* Compact, low-profile distance readout so it never blocks the view. */
+#hud-prompt {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 3px 10px;
+  border-radius: 14px;
+  background: rgba(20, 32, 46, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.5;
+  transition: opacity 0.3s, color 0.3s;
+  white-space: nowrap;
+}
+#hud-prompt.show { opacity: 0.95; color: var(--gold); }
+
+#hud-speed {
+  position: absolute;
+  bottom: 26px;
+  right: 28px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+#hud-controls {
+  position: absolute;
+  bottom: 26px;
+  left: 24px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+#hud-controls kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 1px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* ---------- Touch controls ---------- */
+#touch { display: none; }
+
+/* show on touch devices, or whenever JS flags the body as mobile */
+@media (pointer: coarse) {
+  #touch { display: block; }
+}
+body.is-mobile #touch { display: block; }
+
+#touch {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+#touch .pad {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+#touch .pad-left { left: max(18px, env(safe-area-inset-left)); }
+#touch .pad-right {
+  right: max(18px, env(safe-area-inset-right));
+  align-items: flex-end;
+}
+#touch .col { display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+
+.tbtn {
+  pointer-events: auto;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(20, 32, 46, 0.4);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: transform 0.06s ease, background 0.1s ease;
+}
+.tbtn:active {
+  transform: scale(0.92);
+  background: rgba(242, 201, 138, 0.55);
+  color: #14202e;
+}
+.tbtn-gas {
+  width: 92px;
+  height: 92px;
+  font-size: 32px;
+  border-color: rgba(242, 201, 138, 0.7);
+  background: rgba(217, 138, 90, 0.45);
+}
+.tbtn-sm { width: 62px; height: 62px; font-size: 22px; }
+
+/* keep the keyboard hint out of the way on touch */
+@media (pointer: coarse) {
+  #hud-controls { display: none; }
+  #hud-prompt { bottom: 130px; }
+}
+
+/* tighter HUD on small / short screens — stack the top bar so nothing collides */
+@media (max-width: 560px) {
+  #hud-title { font-size: 11px; letter-spacing: 1.5px; }
+  #hud-badge { font-size: 9px; }
+  /* move the landmark counter under the badge on the left to clear the title */
+  #hud-count { top: 76px; left: 20px; right: auto; font-size: 11px; }
+  #hud-objective { top: 96px; right: auto; left: 20px; }
+  #hud-speed { font-size: 22px; bottom: 130px; right: 18px; }
+  #hud-prompt { font-size: 12px; bottom: 220px; padding: 6px 12px; }
+}
+
+/* shrink the on-screen buttons on very narrow phones */
+@media (max-width: 380px) {
+  .tbtn { width: 64px; height: 64px; font-size: 22px; }
+  .tbtn-gas { width: 80px; height: 80px; }
+  .tbtn-sm { width: 54px; height: 54px; font-size: 19px; }
+}
+
+/* ---------- Loading ---------- */
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1f3a5f 0%, #d98a5a 60%, #f2c98a 100%);
+  transition: opacity 0.8s ease;
+}
+#loading.hidden { opacity: 0; }
+
+#loading-inner { text-align: center; max-width: 420px; padding: 0 24px; }
+
+#loading-logo {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: #fff;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+#loading-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#loading-track {
+  margin-top: 26px;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+#loading-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+
+#loading-label {
+  margin-top: 12px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.85);
+}

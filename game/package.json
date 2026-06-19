@@ -1,0 +1,18 @@
+{
+  "name": "montauk-ranger",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Montauk Ranger — a Firewatch-inspired driving game across the real topography of Montauk Point, NY.",
+  "type": "module",
+  "scripts": {
+    "prefetch": "node tools/prefetch.mjs",
+    "bake-roads": "node tools/bake-roads.mjs",
+    "bake": "node tools/prefetch.mjs && node tools/bake-roads.mjs",
+    "start": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1",
+    "pngjs": "^7.0.0",
+    "three": "^0.169.0"
+  }
+}

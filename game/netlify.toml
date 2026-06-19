@@ -1,0 +1,5 @@
+# Netlify configuration — Montauk Ranger
+# Static site: the game is plain HTML/CSS/ES modules with baked data assets, no build step.
+
+[build]
+  publish = "."

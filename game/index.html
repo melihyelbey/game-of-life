@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Montauk Ranger — Park Patrol</title>
+    <meta name="description" content="Drive a park ranger truck across the real topography of Montauk Point, NY. Firewatch-inspired." />
+    <link rel="stylesheet" href="css/game.css" />
+    <!-- Three.js is vendored locally (assets/vendor/) so the game has zero runtime
+         network dependency — it runs fully offline once the data is baked. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./assets/vendor/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <div id="vignette"></div>
+
+    <!-- HUD overlay -->
+    <div id="hud">
+      <div id="hud-top">
+        <div id="hud-title">MONTAUK POINT · RANGER PATROL</div>
+        <div id="hud-badge"></div>
+      </div>
+      <div id="hud-count"></div>
+      <div id="hud-objective"></div>
+      <div id="hud-speed">0 km/h</div>
+      <div id="hud-controls">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows to drive · <kbd>Space</kbd> brake
+      </div>
+    </div>
+
+    <!-- On-screen touch controls (shown on touch devices) -->
+    <div id="touch">
+      <div class="pad pad-left">
+        <button id="btn-left" class="tbtn" aria-label="steer left">◀</button>
+        <button id="btn-right" class="tbtn" aria-label="steer right">▶</button>
+      </div>
+      <div class="pad pad-right">
+        <div class="col">
+          <button id="btn-brake" class="tbtn tbtn-sm" aria-label="brake">■</button>
+          <button id="btn-rev" class="tbtn tbtn-sm" aria-label="reverse">▼</button>
+        </div>
+        <button id="btn-gas" class="tbtn tbtn-gas" aria-label="accelerate">▲</button>
+      </div>
+    </div>
+
+    <!-- Loading screen -->
+    <div id="loading">
+      <div id="loading-inner">
+        <div id="loading-logo">MONTAUK RANGER</div>
+        <div id="loading-sub">Loading real topography of Montauk Point, NY</div>
+        <div id="loading-track"><div id="loading-bar"></div></div>
+        <div id="loading-label">Starting…</div>
+      </div>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

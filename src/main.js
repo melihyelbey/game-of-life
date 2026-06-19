@@ -61,7 +61,7 @@ async function main() {
   );
 
   // --- world content ---
-  scene.add(buildSky(worldSize * 4));
+  scene.add(buildSky(worldSize * 4, new THREE.Vector3(-0.5, 0.12, 0.28)));
   scene.add(buildLighting(worldSize));
   scene.add(buildTerrain(heightField, surfMeta));
   const scatter = buildScatter(heightField, isMobile ? 0.5 : 1);

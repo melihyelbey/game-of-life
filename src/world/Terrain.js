@@ -6,6 +6,59 @@ import * as THREE from "three";
 import { CONFIG } from "../config.js";
 import { applyFogRamp } from "../render/FogRamp.js";
 
+// Procedural, tileable ground-detail texture generated on a canvas (no image files).
+// It's a soft grayscale value-noise that gently lightens/darkens the vertex-colored
+// terrain — adds surface grain without fighting the flat-shaded low-poly look.
+function makeDetailTexture(size = 256) {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(size, size);
+  const d = img.data;
+
+  const tileNoise = (gridN, seedOff) => {
+    const g = new Float32Array(gridN * gridN);
+    let s = 12345 + seedOff;
+    const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    for (let i = 0; i < g.length; i++) g[i] = rnd();
+    return (u, v) => {
+      const fx = u * gridN, fy = v * gridN;
+      const x0 = Math.floor(fx) % gridN, y0 = Math.floor(fy) % gridN;
+      const x1 = (x0 + 1) % gridN, y1 = (y0 + 1) % gridN;
+      let tx = fx - Math.floor(fx), ty = fy - Math.floor(fy);
+      tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty); // smoothstep
+      const a = g[y0 * gridN + x0], b = g[y0 * gridN + x1];
+      const c = g[y1 * gridN + x0], e = g[y1 * gridN + x1];
+      return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + e * tx) * ty;
+    };
+  };
+
+  const n1 = tileNoise(8, 0), n2 = tileNoise(24, 91), n3 = tileNoise(96, 13);
+  const warm = tileNoise(6, 51); // large-scale warm/cool patches (grass vs dirt)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = x / size, v = y / size;
+      const val = 0.5 * n1(u, v) + 0.32 * n2(u, v) + 0.18 * n3(u, v); // 0..1
+      const b = 0.74 + val * 0.26; // brightness 0.74..1.0 (a touch more grain)
+      const w = warm(u, v); // 0..1 cool->warm
+      // subtle low-saturation tint: cool greenish vs warm earthy, both near white
+      const rr = Math.min(1, b * (0.95 + 0.08 * w));
+      const gg = Math.min(1, b * (0.99 - 0.02 * w));
+      const bb = Math.min(1, b * (0.97 - 0.12 * w));
+      const i = (y * size + x) * 4;
+      d[i] = Math.round(rr * 255);
+      d[i + 1] = Math.round(gg * 255);
+      d[i + 2] = Math.round(bb * 255);
+      d[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 4;
+  return tex;
+}
+
 export function buildTerrain(heightField, meta) {
   const { widthMeters, heightMeters } = meta;
 
@@ -77,7 +130,13 @@ export function buildTerrain(heightField, meta) {
   }
   flat.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  const detail = makeDetailTexture();
+  detail.repeat.set(widthMeters / 32, heightMeters / 32); // ~32 m per tile
+  const mat = new THREE.MeshLambertMaterial({
+    vertexColors: true,
+    flatShading: true,
+    map: detail,
+  });
   applyFogRamp(mat);
   const mesh = new THREE.Mesh(flat, mat);
 

@@ -258,18 +258,24 @@ export class Vehicle {
         if (-this.vy > 14) this.speed *= 0.88; // scrub a little on a hard landing
         this.airborne = false;
       }
-      // Follow the ground via the slope the truck JUST CLIMBED (backward difference over a
-      // few metres), not the raw frame-to-frame height jump. vy = speed * slope:
-      //  - climbing a hill/ramp builds upward velocity that flings you off the crest (the
-      //    backward slope is still positive at the lip, so the launch is preserved),
-      //  - a surface that simply steps up under you (driving onto the ramp) ramps the slope
-      //    in smoothly instead of producing a one-frame spike, so it no longer flings you.
+      // Decide whether to LAUNCH off this spot or just hug the surface. Look both behind
+      // (what we climbed) and ahead (where we're going):
+      //  - if the ground FALLS AWAY ahead (a real edge / jump-ramp lip), preserve the climb
+      //    momentum so we fly off the crest (the classic airtime),
+      //  - if the ground CONTINUES ahead (cresting a switchback ramp onto a flat corner, or
+      //    more ramp), just track the forward slope so we don't get flung off level ground.
       const e2 = 2.6;
       const fxh = Math.sin(this.heading), fzh = Math.cos(this.heading);
       const hBehind = this.hf.getHeight(this.position.x - fxh * e2, this.position.z - fzh * e2);
-      const slopeF = (groundY - hBehind) / e2;
+      const hAhead = this.hf.getHeight(this.position.x + fxh * e2, this.position.z + fzh * e2);
       const cap = Math.abs(this.speed) * 1.5 + 8;
-      this.vy = THREE.MathUtils.clamp(this.speed * slopeF, -cap, cap);
+      if (groundY - hAhead > 2.0) {
+        // genuine drop ahead -> launch with the slope we just climbed
+        this.vy = THREE.MathUtils.clamp(this.speed * ((groundY - hBehind) / e2), -cap, cap);
+      } else {
+        // ground keeps going -> follow the forward slope (smooth climb / flat), no fling
+        this.vy = THREE.MathUtils.clamp(this.speed * ((hAhead - groundY) / e2), -cap, cap);
+      }
     } else {
       // leaving / in the air
       if (!this.airborne) {

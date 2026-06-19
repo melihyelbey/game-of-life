@@ -213,15 +213,54 @@ export function buildCourse(heightField, start) {
   const features = [];
   const segments = []; // per-piece metadata (used by tests + ?debug)
   const W = 12;
+  const groundAt = (px, pz) => heightField.getHeight(px, pz); // terrain (features not added yet)
 
-  let x = start.x;
-  let z = start.z;
-  let heading = start.heading;
-  let topY = heightField.getHeight(x, z); // current drive-surface height (ground at start)
-  const groundAt = (px, pz) => heightField.getHeight(px, pz);
+  // The course is placed on real, sloped terrain. If we chained heights only from the start
+  // ground level, the decks would sink UNDER the terrain wherever the land rises faster than
+  // the course climbs (the "buried boards" bug). So we LIFT the whole course onto stilts:
+  // sample the highest terrain across the course's footprint and raise every deck above it,
+  // then connect the ground to the lifted start with an auto-length entrance ramp. Posts run
+  // down to the real terrain, so the structure looks grounded and you can drive under it.
+  const startTerrain = groundAt(start.x, start.z);
+  const dxh = Math.sin(start.heading), dzh = Math.cos(start.heading);
+  const pxh = Math.cos(start.heading), pzh = -Math.sin(start.heading); // lateral
+  let maxTerrain = startTerrain;
+  for (let f = -12; f <= 240; f += 8) {     // along the climb direction (covers entrance+course)
+    for (let l = -80; l <= 80; l += 8) {    // lateral spread (covers the side jog)
+      const sx = start.x + dxh * f + pxh * l;
+      const sz = start.z + dzh * f + pzh * l;
+      if (!heightField.isInBounds(sx, sz)) continue;
+      const h = groundAt(sx, sz);
+      if (h > maxTerrain) maxTerrain = h;
+    }
+  }
+  const clearance = 2.0;
+  let lift = Math.max(0, maxTerrain + clearance - startTerrain);
+  if (lift < 2.5) lift = 0; // flat/gentle ground: let the course sit on the terrain
 
   let flag = null;
   let summitPos = null;
+  let x = start.x;
+  let z = start.z;
+  let heading = start.heading;
+  let topY = startTerrain; // current deck height (ground at the entrance foot)
+
+  // entrance ramp: ground -> lifted course start, at a gentle, drivable slope
+  if (lift > 0.5) {
+    const entLen = Math.max(16, lift / 0.32);
+    const piece = buildRamp({
+      x0: x, z0: z, heading, length: entLen, height: lift, width: W,
+      baseY: startTerrain, groundY: startTerrain,
+    });
+    group.add(piece.group);
+    features.push(piece.feature);
+    const ex = x + dxh * entLen, ez = z + dzh * entLen;
+    segments.push({
+      type: "ramp", heading, length: entLen, width: W,
+      start: { x, z }, end: { x: ex, z: ez }, baseY: startTerrain, topY: startTerrain + lift,
+    });
+    x = ex; z = ez; topY = startTerrain + lift;
+  }
 
   for (const seg of LAYOUT) {
     if (seg.type === "corner") {
@@ -254,6 +293,7 @@ export function buildCourse(heightField, start) {
     if (seg.type === "ramp") {
       const piece = buildRamp({
         x0: x, z0: z, heading, length: seg.length, height: seg.height, width, baseY: sBaseY,
+        groundY: Math.min(groundAt(x, z), sBaseY),
       });
       group.add(piece.group);
       features.push(piece.feature);

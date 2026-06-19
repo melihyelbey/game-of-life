@@ -121,6 +121,7 @@ async function main() {
   const clock = new THREE.Clock();
   let armed = false;    // becomes true once the truck is up on the course
   let finished = false; // summit flag already triggered
+  let offCourse = 0;    // consecutive grounded frames spent off the course (seam guard)
   function frame() {
     const dt = Math.min(0.05, clock.getDelta());
     vehicle.update(dt, input.state);
@@ -128,14 +129,18 @@ async function main() {
     hud.update(vehicle);
 
     // --- parkour: fall -> back to the start, reach the flag -> raise it + confetti ---
+    // Slope-independent: once you're up on the course (armed), landing back on bare terrain
+    // (no course feature underneath) for a few frames means you fell off -> restart. We
+    // count frames so a 1-frame gap at a piece seam doesn't trigger a false fall.
     const onFeature = heightField.getFeatureHeight(vehicle.position.x, vehicle.position.z);
     if (!vehicle.airborne && onFeature !== null && vehicle.position.y > courseGroundY + 4) {
       armed = true; // climbed up onto the course
     }
-    if (armed && !vehicle.airborne && onFeature === null &&
-        vehicle.position.y < courseGroundY + 1.5) {
+    offCourse = (!vehicle.airborne && onFeature === null) ? offCourse + 1 : 0;
+    if (armed && offCourse > 4) {
       vehicle.respawn(course.startPose.x, course.startPose.z, course.startPose.heading);
       armed = false;
+      offCourse = 0;
       hud.flash("Düştün! Baştan başla.");
     }
     if (!finished && course.flag) {

@@ -6,9 +6,11 @@ import * as THREE from "three";
 import { applyFogRamp } from "../render/FogRamp.js";
 
 // opts: { x0, z0 } start (low end, on the ground), heading (radians, direction of climb),
-//        length, height, width, baseY (ground height at the start)
+//        length, height, width, baseY (deck height at the start),
+//        groundY (optional terrain height the support posts reach down to; default baseY)
 export function buildRamp(opts) {
   const { x0, z0, heading, length: L, height: H, width: W, baseY } = opts;
+  const groundY = opts.groundY ?? baseY;
   const dirX = Math.sin(heading);
   const dirZ = Math.cos(heading);
   const perpX = Math.cos(heading);   // right vector
@@ -70,10 +72,10 @@ export function buildRamp(opts) {
   applyFogRamp(postMat);
   for (const tt of [0.55, 0.8]) {
     for (const lat of [-half + 0.6, half - 0.6]) {
-      const postH = baseY + (tt / 1) * H * 1; // approx height under deck at fraction tt*L
-      const ph = (tt * H);
+      const deckY = baseY + tt * H;         // deck height at this fraction
+      const ph = Math.max(0.5, deckY - groundY); // post runs from terrain up to the deck
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, ph, 0.5), postMat);
-      const pos = p(tt * L, lat, baseY + ph / 2);
+      const pos = p(tt * L, lat, groundY + ph / 2);
       post.position.set(pos[0], pos[1], pos[2]);
       group.add(post);
     }

@@ -178,22 +178,40 @@ export function buildConfetti(maxParticles = 220) {
 
 // --- the course layout: edit this array to lengthen/reshape the parkour. Segments chain
 // head-to-tail; each takes its baseY from the previous piece's top. ---------------------
-// type "ramp": sloped climb (drive up, launch off the lip). "platform": flat pad (land/run
-// on). "gap": empty space (no mesh) the truck must JUMP across. `turn` (radians, optional)
-// rotates the travel direction before the segment so the course can bend.
+// Segment types:
+//   "ramp"     sloped climb — drive up and launch off the lip. {length, height, width?}
+//   "platform" flat pad — land on / run along.                 {length, width?, summit?}
+//   "gap"      empty space the truck must JUMP across.          {length}
+//   "corner"   square turn pad straddling the bend; rotates the
+//              travel direction by `turn` (radians).            {turn, size?}
+// Design notes for difficulty: corners force you to land and re-aim (air-steering is weak),
+// narrow platforms (small width) punish sloppy landings, and every gap sits right after a
+// ramp so you launch with real air. A fall sends you all the way back to the start.
 const LAYOUT = [
-  { type: "ramp", length: 26, height: 11 }, // climb + launch lip
-  { type: "gap", length: 9 },               // JUMP across the gap
-  { type: "platform", length: 18 },         // landing pad (same height as the lip)
-  { type: "ramp", length: 22, height: 8 },  // climb again
-  { type: "platform", length: 20, summit: true }, // summit pad + flag
+  { type: "ramp", length: 22, height: 6, width: 12 },    // 1 gentle launch (west)
+  { type: "gap", length: 5 },                            //   JUMP #1
+  { type: "platform", length: 20, width: 11 },           // 2 land (generous)
+  { type: "corner", turn: Math.PI / 2, size: 12 },       //   bend LEFT (now south)
+  { type: "ramp", length: 20, height: 6, width: 10 },    // 3 climb
+  { type: "gap", length: 5 },                            //   JUMP #2
+  { type: "platform", length: 18, width: 8 },            // 4 NARROW land (lateral precision)
+  { type: "corner", turn: -Math.PI / 2, size: 12 },      //   bend RIGHT (back west)
+  { type: "ramp", length: 20, height: 6, width: 9 },     // 5 climb
+  { type: "gap", length: 6 },                            //   JUMP #3
+  { type: "platform", length: 18, width: 8 },            // 6 NARROW land
+  { type: "ramp", length: 18, height: 6, width: 9 },     // 7 climb
+  { type: "gap", length: 5 },                            //   JUMP #4
+  { type: "platform", length: 18, width: 9 },            // 8 land
+  { type: "ramp", length: 16, height: 5, width: 10 },    // 9 final climb
+  { type: "platform", length: 22, width: 16, summit: true }, // 10 summit pad + flag
 ];
 
 // start: { x, z, heading } — the low end of the first segment and the climb direction.
-// Returns { group, features, startPose, flag, summitPos, topY }.
+// Returns { group, features, startPose, flag, summitPos, topY, segments }.
 export function buildCourse(heightField, start) {
   const group = new THREE.Group();
   const features = [];
+  const segments = []; // per-piece metadata (used by tests + ?debug)
   const W = 12;
 
   let x = start.x;
@@ -206,21 +224,43 @@ export function buildCourse(heightField, start) {
   let summitPos = null;
 
   for (const seg of LAYOUT) {
-    if (seg.turn) heading += seg.turn;
-    const dirX = Math.sin(heading);
-    const dirZ = Math.cos(heading);
-
-    if (seg.type === "ramp") {
-      const baseY = topY;
-      const piece = buildRamp({
-        x0: x, z0: z, heading, length: seg.length, height: seg.height, width: W, baseY,
+    if (seg.type === "corner") {
+      // square pad centred on the bend so the incoming and outgoing pieces both overlap it
+      const newHeading = heading + (seg.turn || 0);
+      const ndx = Math.sin(newHeading), ndz = Math.cos(newHeading);
+      const S = seg.size || 12;
+      const x0 = x - ndx * (S / 2);
+      const z0 = z - ndz * (S / 2);
+      const piece = buildPlatform({
+        x0, z0, heading: newHeading, length: S, width: S, topY,
+        baseY: Math.min(groundAt(x, z), topY - 1),
       });
       group.add(piece.group);
       features.push(piece.feature);
-      topY = baseY + seg.height;
+      segments.push({ type: "corner", heading: newHeading, topY, size: S, center: { x, z } });
+      // advance to the far edge of the pad and adopt the new heading
+      x += ndx * (S / 2);
+      z += ndz * (S / 2);
+      heading = newHeading;
+      continue;
+    }
+
+    if (seg.turn) heading += seg.turn;
+    const dirX = Math.sin(heading);
+    const dirZ = Math.cos(heading);
+    const width = seg.width || W;
+    const sx = x, sz = z, sBaseY = topY;
+
+    if (seg.type === "ramp") {
+      const piece = buildRamp({
+        x0: x, z0: z, heading, length: seg.length, height: seg.height, width, baseY: sBaseY,
+      });
+      group.add(piece.group);
+      features.push(piece.feature);
+      topY = sBaseY + seg.height;
     } else if (seg.type === "platform") {
       const piece = buildPlatform({
-        x0: x, z0: z, heading, length: seg.length, width: W, topY,
+        x0: x, z0: z, heading, length: seg.length, width, topY,
         baseY: Math.min(groundAt(x, z), topY - 1),
       });
       group.add(piece.group);
@@ -236,6 +276,10 @@ export function buildCourse(heightField, start) {
     // advance the cursor to the end of this segment (gaps just move the cursor)
     x += dirX * seg.length;
     z += dirZ * seg.length;
+    segments.push({
+      type: seg.type, heading, length: seg.length, width,
+      start: { x: sx, z: sz }, end: { x, z }, baseY: sBaseY, topY,
+    });
   }
 
   // respawn pose: a short run-up behind the first segment, facing up the course
@@ -245,5 +289,5 @@ export function buildCourse(heightField, start) {
     heading: start.heading,
   };
 
-  return { group, features, startPose, flag, summitPos, topY };
+  return { group, features, startPose, flag, summitPos, topY, segments };
 }

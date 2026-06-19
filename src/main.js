@@ -70,9 +70,9 @@ async function main() {
   const { group: poiGroup, pois } = buildPOIs(roads, heightField);
   scene.add(poiGroup);
 
-  // spatial collision field: solid landmarks + tree trunks
+  // spatial collision field: solid landmarks (boxes/circles) + tree trunks
   const obstacleField = new ObstacleField(14);
-  obstacleField.addMany(pois.map((p) => ({ x: p.position.x, z: p.position.z, radius: p.radius })));
+  obstacleField.addMany(pois.map((p) => p.collider));
   obstacleField.addMany(scatter.colliders);
 
   // --- spawn the ranger near the lighthouse parking, facing inland (west) ---

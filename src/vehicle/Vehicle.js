@@ -113,24 +113,51 @@ export class Vehicle {
     let nx = this.position.x + fx * this.speed * dt;
     let nz = this.position.z + fz * this.speed * dt;
 
-    // Solid collision (towers + trees). Push out to the boundary and only damp the
-    // velocity component heading INTO the obstacle — tangential motion is preserved so
-    // you slide smoothly past instead of sticking when grazing an edge.
+    // Solid collision (towers + trees). Resolve against circles and axis-aligned boxes by
+    // pushing out along the contact normal, and only damp the velocity component heading
+    // INTO the obstacle so tangential motion is preserved (you slide past edges instead of
+    // sticking, and can't dive into square-tower corners).
     if (this.obstacleField) {
+      const r = this.carRadius;
       const near = this.obstacleField.queryNear(nx, nz);
       for (const o of near) {
-        const dx = nx - o.x;
-        const dz = nz - o.z;
-        const minDist = o.radius + this.carRadius;
-        const dist = Math.hypot(dx, dz);
-        if (dist < minDist && dist > 1e-4) {
-          const nrmX = dx / dist;
-          const nrmZ = dz / dist;
-          nx = o.x + nrmX * minDist; // place exactly on the boundary
-          nz = o.z + nrmZ * minDist;
+        let nrmX = 0, nrmZ = 0, hit = false;
+        if (o.halfX !== undefined) {
+          // box: closest point on the AABB to the car centre
+          const cpx = Math.max(o.x - o.halfX, Math.min(nx, o.x + o.halfX));
+          const cpz = Math.max(o.z - o.halfZ, Math.min(nz, o.z + o.halfZ));
+          let dx = nx - cpx, dz = nz - cpz;
+          let d = Math.hypot(dx, dz);
+          if (d > 1e-4 && d < r) {
+            nrmX = dx / d; nrmZ = dz / d;
+            nx = cpx + nrmX * r; nz = cpz + nrmZ * r;
+            hit = true;
+          } else if (d <= 1e-4) {
+            // centre inside the box -> eject along the axis of least penetration
+            const penX = o.halfX + r - Math.abs(nx - o.x);
+            const penZ = o.halfZ + r - Math.abs(nz - o.z);
+            if (penX < penZ) {
+              nrmX = nx >= o.x ? 1 : -1;
+              nx = o.x + nrmX * (o.halfX + r);
+            } else {
+              nrmZ = nz >= o.z ? 1 : -1;
+              nz = o.z + nrmZ * (o.halfZ + r);
+            }
+            hit = true;
+          }
+        } else {
+          const dx = nx - o.x, dz = nz - o.z;
+          const minDist = o.radius + r;
+          const dist = Math.hypot(dx, dz);
+          if (dist < minDist && dist > 1e-4) {
+            nrmX = dx / dist; nrmZ = dz / dist;
+            nx = o.x + nrmX * minDist; nz = o.z + nrmZ * minDist;
+            hit = true;
+          }
+        }
+        if (hit) {
           const heelingIn = fx * nrmX + fz * nrmZ; // <0 => moving into the obstacle
           if (this.speed * heelingIn < 0) this.speed *= -0.2; // head-on bump
-          // grazing (heelingIn ~ 0): keep speed -> slides around
         }
       }
     }

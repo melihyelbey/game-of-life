@@ -4,3 +4,4 @@ node_modules/
 *.log
 tools/.cache/
 tools/shot-*.png
+tools/_*.mjs

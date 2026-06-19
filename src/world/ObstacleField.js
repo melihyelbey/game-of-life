@@ -1,6 +1,8 @@
 // Uniform spatial hash for solid obstacles (towers + tree trunks). The vehicle only tests
 // obstacles in its own cell + the 8 neighbours, so collision stays O(1) even with many
-// hundreds of trees.
+// hundreds of trees. Obstacles are circles ({x,z,radius}) or axis-aligned boxes
+// ({x,z,halfX,halfZ}) — boxes are used for the square tower footprints so the truck can't
+// slip into their corners the way a single circle allows.
 export class ObstacleField {
   constructor(cellSize = 14) {
     this.cell = cellSize;
@@ -12,17 +14,22 @@ export class ObstacleField {
     return cx + "|" + cz;
   }
 
-  add(x, z, radius) {
-    const cx = Math.floor(x / this.cell);
-    const cz = Math.floor(z / this.cell);
+  // store an obstacle object (must have x,z; plus radius OR halfX/halfZ)
+  addObj(o) {
+    const cx = Math.floor(o.x / this.cell);
+    const cz = Math.floor(o.z / this.cell);
     const k = this._key(cx, cz);
     let arr = this.map.get(k);
     if (!arr) this.map.set(k, (arr = []));
-    arr.push({ x, z, radius });
+    arr.push(o);
+  }
+
+  add(x, z, radius) {
+    this.addObj({ x, z, radius });
   }
 
   addMany(items) {
-    for (const o of items) this.add(o.x, o.z, o.radius);
+    for (const o of items) this.addObj(o);
   }
 
   // returns a reused array of obstacles near (x,z)

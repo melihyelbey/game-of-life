@@ -58,8 +58,14 @@ function lookoutTower() {
 }
 
 const BUILDERS = { lighthouse, radar: radarTower, lookout: lookoutTower };
-// solid collision radius (meters) per landmark, sized to the visible footprint
-const RADII = { lighthouse: 2.6, radar: 5, lookout: 3 };
+// Collision shapes sized to each landmark's visible footprint. The radar tower is a
+// square leg structure, so it uses an axis-aligned box (a circle would let the truck dive
+// into its corners); the round lighthouse and the open lookout use circles.
+const SHAPES = {
+  lighthouse: { radius: 2.6 },
+  radar: { halfX: 5.5, halfZ: 5.5 },
+  lookout: { radius: 3 },
+};
 
 // Returns { group, pois: [{id,name,position:Vector3}] }
 export function buildPOIs(geojson, heightField) {
@@ -73,11 +79,12 @@ export function buildPOIs(geojson, heightField) {
     const obj = build();
     obj.position.set(x, y, z);
     group.add(obj);
+    const shape = SHAPES[f.properties.id] || { radius: 4 };
     pois.push({
       id: f.properties.id,
       name: f.properties.name,
       position: new THREE.Vector3(x, y, z),
-      radius: RADII[f.properties.id] || 4,
+      collider: { x, z, ...shape },
     });
   }
   return { group, pois };

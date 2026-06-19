@@ -8,7 +8,6 @@ export class Hud {
     this.visited = new Set();
     this.speedEl = document.getElementById("hud-speed");
     this.objEl = document.getElementById("hud-objective");
-    this.promptEl = document.getElementById("hud-prompt");
     this.badgeEl = document.getElementById("hud-badge");
     this.countEl = document.getElementById("hud-count");
 
@@ -33,31 +32,19 @@ export class Hud {
   update(vehicle) {
     if (this.speedEl) this.speedEl.textContent = `${Math.round(vehicle.speedKmh)} km/h`;
 
-    // nearest POI
-    let nearest = null;
-    let nearestDist = Infinity;
+    // Log a landmark when you get close. No persistent on-screen label — just a brief
+    // top-corner confirmation so nothing hovers over the truck.
     for (const p of this.pois) {
+      if (this.visited.has(p.id)) continue;
       const d = Math.hypot(
         p.position.x - vehicle.position.x,
         p.position.z - vehicle.position.z
       );
-      if (d < nearestDist) {
-        nearestDist = d;
-        nearest = p;
-      }
-    }
-
-    if (nearest && nearestDist < CONFIG.poiPromptRadius) {
-      if (!this.visited.has(nearest.id)) {
-        this.visited.add(nearest.id);
+      if (d < CONFIG.poiPromptRadius) {
+        this.visited.add(p.id);
         this._renderCount();
-        this._flashObjective(`Logged: ${nearest.name}`);
+        this._flashObjective(`Logged: ${p.name}`);
       }
-      this.promptEl.textContent = `${nearest.name} — ${Math.round(nearestDist)} m`;
-      this.promptEl.classList.add("show");
-    } else if (nearest) {
-      this.promptEl.textContent = `Next: ${nearest.name} — ${Math.round(nearestDist)} m`;
-      this.promptEl.classList.remove("show");
     }
   }
 

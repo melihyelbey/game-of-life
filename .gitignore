@@ -2,3 +2,6 @@ node_modules/
 .netlify/
 .DS_Store
 *.log
+
+# generated game build artifact (delivered to the user, regenerated each time)
+montauk-ranger.zip

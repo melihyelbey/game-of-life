@@ -14,6 +14,10 @@ export class Vehicle {
     this.speed = 0;
     this.obstacleField = null; // spatial hash of solid landmarks + trees
     this.carRadius = 1.2;
+    this.vy = 0;             // vertical velocity (jumps / gravity)
+    this.airborne = false;
+    this.airVel = { x: 0, z: 0 }; // ballistic horizontal velocity while airborne
+    this._pitch = 0;         // smoothed body pitch (flight arc)
     this._wheelSpin = 0;
     this._roll = 0;        // smoothed body roll from steering
     this._steerVis = 0;    // smoothed visual steer angle for front wheels
@@ -25,6 +29,7 @@ export class Vehicle {
     this._quatTilt = new THREE.Quaternion();
     this._tmpQuat = new THREE.Quaternion();
     this._snapToGround();
+    this.prevGroundY = this.position.y;
   }
 
   _buildMesh() {
@@ -81,37 +86,64 @@ export class Vehicle {
 
   update(dt, input) {
     const c = this.cfg;
+    const grounded = !this.airborne;
 
-    // longitudinal: throttle / brake-reverse / gentle coast
-    if (input.forward > 0) {
-      this.speed += c.accel * dt;
-    } else if (input.forward < 0) {
-      this.speed -= c.accel * 0.85 * dt; // brake, then accelerate into reverse
-    } else {
-      // coast: light aero drag (per-second) + constant rolling resistance to a stop
-      this.speed *= Math.pow(c.drag, dt);
-      const rr = c.rollResist * dt;
-      if (Math.abs(this.speed) <= rr) this.speed = 0;
-      else this.speed -= Math.sign(this.speed) * rr;
-    }
-    if (input.brake) {
-      const bd = c.brake * dt;
-      if (Math.abs(this.speed) <= bd) this.speed = 0;
-      else this.speed -= Math.sign(this.speed) * bd;
-    }
-    this.speed = THREE.MathUtils.clamp(this.speed, -c.maxReverse, c.maxSpeed);
-    if (Math.abs(this.speed) < 0.02) this.speed = 0;
+    // ---------- longitudinal control (only on the ground) ----------
+    if (grounded) {
+      if (input.forward > 0) {
+        this.speed += c.accel * dt;
+      } else if (input.forward < 0) {
+        this.speed -= c.accel * 0.85 * dt; // brake, then accelerate into reverse
+      } else {
+        // coast: light aero drag (per-second) + constant rolling resistance to a stop
+        this.speed *= Math.pow(c.drag, dt);
+        const rr = c.rollResist * dt;
+        if (Math.abs(this.speed) <= rr) this.speed = 0;
+        else this.speed -= Math.sign(this.speed) * rr;
+      }
+      if (input.brake) {
+        const bd = c.brake * dt;
+        if (Math.abs(this.speed) <= bd) this.speed = 0;
+        else this.speed -= Math.sign(this.speed) * bd;
+      }
 
-    // steering scales with speed so you can't pivot in place; invert when reversing
+      // slope gravity: climbing a hill steals speed, descending adds it (real-ish).
+      const fx0 = Math.sin(this.heading), fz0 = Math.cos(this.heading);
+      const e = 2.5;
+      const hHere = this.hf.getHeight(this.position.x, this.position.z);
+      const hAhead = this.hf.getHeight(this.position.x + fx0 * e, this.position.z + fz0 * e);
+      const slope = (hAhead - hHere) / e;
+      const sinT = slope / Math.sqrt(1 + slope * slope);
+      this.speed -= c.gravity * c.slopePull * sinT * dt;
+
+      this.speed = THREE.MathUtils.clamp(this.speed, -c.maxReverse, c.maxSpeed);
+      if (Math.abs(this.speed) < 0.02 && input.forward === 0) this.speed = 0;
+    }
+
+    // ---------- steering (full on ground, reduced in air) ----------
     const speedFactor = THREE.MathUtils.clamp(Math.abs(this.speed) / 6, 0, 1);
+    const steerAuth = grounded ? 1 : 0.5;
     const steerInput = input.steer * (this.speed < 0 ? -1 : 1);
-    this.heading += steerInput * c.steerRate * dt * speedFactor;
+    this.heading += steerInput * c.steerRate * dt * speedFactor * steerAuth;
 
-    // integrate on XZ
+    // ---------- horizontal velocity ----------
     const fx = Math.sin(this.heading);
     const fz = Math.cos(this.heading);
-    let nx = this.position.x + fx * this.speed * dt;
-    let nz = this.position.z + fz * this.speed * dt;
+    let velX, velZ;
+    if (grounded) {
+      velX = fx * this.speed;
+      velZ = fz * this.speed;
+    } else {
+      // ballistic flight: keep takeoff velocity, allow a little air steering
+      const airSpeed = Math.hypot(this.airVel.x, this.airVel.z);
+      const k = Math.min(1, c.airControl * dt);
+      this.airVel.x += (fx * airSpeed - this.airVel.x) * k;
+      this.airVel.z += (fz * airSpeed - this.airVel.z) * k;
+      velX = this.airVel.x;
+      velZ = this.airVel.z;
+    }
+    let nx = this.position.x + velX * dt;
+    let nz = this.position.z + velZ * dt;
 
     // Solid collision (towers + trees). Resolve against circles and axis-aligned boxes by
     // pushing out along the contact normal, and only damp the velocity component heading
@@ -156,34 +188,82 @@ export class Vehicle {
           }
         }
         if (hit) {
-          const heelingIn = fx * nrmX + fz * nrmZ; // <0 => moving into the obstacle
-          if (this.speed * heelingIn < 0) this.speed *= -0.2; // head-on bump
+          // damp only motion heading INTO the obstacle (slide along edges)
+          const heelingIn = velX * nrmX + velZ * nrmZ; // <0 => moving inward
+          if (heelingIn < 0) {
+            this.speed *= -0.2;
+            this.airVel.x *= -0.2;
+            this.airVel.z *= -0.2;
+          }
         }
       }
     }
 
+    let inBounds = true;
     if (!this.hf.isInBounds(nx, nz)) {
+      inBounds = false;
       this.speed *= -0.3; // soft bounce off the island edge
     } else {
       this.position.x = nx;
       this.position.z = nz;
     }
-    this._snapToGround();
 
-    // --- orientation: yaw to heading, tilt to slope, add steer roll ---
-    this.hf.getNormal(this.position.x, this.position.z, this._normal);
-    const targetRoll = -input.steer * speedFactor * 0.12;
+    // ---------- vertical: jumps + gravity (the classic car-game airtime) ----------
+    // Track the ground under the truck before/after the horizontal step so we know how
+    // fast the ground is rising; carry that as upward velocity over crests/ramps.
+    const groundY = this.hf.getHeight(this.position.x, this.position.z);
+    this.vy -= c.gravity * dt;
+    let ny = this.position.y + this.vy * dt;
+
+    if (ny <= groundY + 0.06) {
+      // on / hitting the ground
+      ny = groundY;
+      if (this.airborne) {
+        // landed: convert ballistic velocity back to ground speed along the heading
+        const land = Math.hypot(this.airVel.x, this.airVel.z);
+        this.speed = (this.speed < 0 ? -1 : 1) * land;
+        if (-this.vy > 14) this.speed *= 0.88; // scrub a little on a hard landing
+        this.airborne = false;
+      }
+      // follow the ground: vy = how fast the surface rises beneath us (= speed * slope)
+      this.vy = (groundY - this.prevGroundY) / Math.max(dt, 1e-4);
+      this.vy = THREE.MathUtils.clamp(this.vy, -400, 120);
+    } else {
+      // leaving / in the air
+      if (!this.airborne) {
+        this.airborne = true;
+        this.airVel.x = velX; // snapshot takeoff velocity
+        this.airVel.z = velZ;
+      }
+    }
+    this.position.y = ny;
+    this.prevGroundY = groundY;
+
+    // ---------- orientation ----------
+    const targetRoll = grounded ? -input.steer * speedFactor * 0.12 : this._roll * 0.9;
     this._roll += (targetRoll - this._roll) * Math.min(1, 8 * dt);
-
     const yawQuat = this._tmpQuat.setFromAxisAngle(this._up, this.heading);
-    const tiltTarget = new THREE.Quaternion().setFromUnitVectors(this._up, this._normal);
-    this._quatTilt.slerp(tiltTarget, Math.min(1, c.tiltResponse * dt));
     const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), this._roll);
-    this.mesh.quaternion.copy(this._quatTilt).multiply(yawQuat).multiply(rollQuat);
+
+    if (this.airborne) {
+      // pitch the nose to the flight arc (up while rising, down while falling)
+      const horiz = Math.hypot(velX, velZ);
+      const targetPitch = Math.atan2(this.vy, Math.max(horiz, 3));
+      this._pitch += (targetPitch - this._pitch) * Math.min(1, c.airPitch * dt);
+      this._quatTilt.slerp(new THREE.Quaternion(), Math.min(1, 3 * dt)); // level out roll-tilt
+      const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this._pitch);
+      this.mesh.quaternion.copy(this._quatTilt).multiply(yawQuat).multiply(pitchQuat).multiply(rollQuat);
+    } else {
+      this.hf.getNormal(this.position.x, this.position.z, this._normal);
+      const tiltTarget = new THREE.Quaternion().setFromUnitVectors(this._up, this._normal);
+      this._quatTilt.slerp(tiltTarget, Math.min(1, c.tiltResponse * dt));
+      this._pitch *= 0.8;
+      this.mesh.quaternion.copy(this._quatTilt).multiply(yawQuat).multiply(rollQuat);
+    }
     this.mesh.position.copy(this.position);
 
     // --- wheels: spin with travel, steer the fronts ---
-    this._wheelSpin -= (this.speed * dt) / 0.55;
+    this._wheelSpin -= (Math.hypot(velX, velZ) * Math.sign(this.speed || 1) * dt) / 0.55;
     for (const w of this.allWheels) w.rotation.x = this._wheelSpin;
     this._steerVis += (input.steer * 0.5 - this._steerVis) * Math.min(1, 10 * dt);
     for (const p of this.frontWheels) p.rotation.y = this._steerVis;

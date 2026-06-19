@@ -49,6 +49,10 @@ export const CONFIG = {
     grip: 3.2,           // how fast heading aligns to travel
     rideHeight: 0.9,     // body center above ground
     tiltResponse: 5.0,   // how fast body aligns to slope normal
+    gravity: 22,         // m/s^2, used for jumps/airtime
+    slopePull: 0.8,      // how strongly gravity steals/adds speed on hills (x gravity)
+    airControl: 1.4,     // how fast you can steer the trajectory while airborne
+    airPitch: 6.0,       // how fast the body pitches to its flight arc
   },
 
   camera: {

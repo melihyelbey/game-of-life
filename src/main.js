@@ -7,6 +7,7 @@ import { HeightField, downsampleHeights } from "./world/HeightField.js";
 import { buildTerrain } from "./world/Terrain.js";
 import { buildScatter } from "./world/Scatter.js";
 import { ObstacleField } from "./world/ObstacleField.js";
+import { buildRamp } from "./world/Ramp.js";
 import { buildRoads } from "./world/Roads.js";
 import { buildPOIs } from "./world/PointsOfInterest.js";
 import { buildSky } from "./world/Sky.js";
@@ -80,8 +81,20 @@ async function main() {
   const spawn = lighthouse
     ? { x: lighthouse.position.x - 60, z: lighthouse.position.z + 20 }
     : { x: meta.widthMeters * 0.6, z: meta.heightMeters * 0.5 };
+
+  // --- test ramp: straight ahead (west) of the spawn, so you can floor it and fly ---
+  const rampHeading = -Math.PI / 2;
+  const rampStart = { x: spawn.x - 62, z: spawn.z };
+  const rampBaseY = heightField.getHeight(rampStart.x, rampStart.z);
+  const ramp = buildRamp({
+    x0: rampStart.x, z0: rampStart.z, heading: rampHeading,
+    length: 34, height: 15, width: 12, baseY: rampBaseY,
+  });
+  scene.add(ramp.group);
+  heightField.addFeature(ramp.feature);
+
   const vehicle = new Vehicle(heightField, spawn.x, spawn.z);
-  vehicle.heading = -Math.PI / 2; // face west, toward the park
+  vehicle.heading = -Math.PI / 2; // face west, toward the park & the ramp
   vehicle.obstacleField = obstacleField;
   scene.add(vehicle.mesh);
 

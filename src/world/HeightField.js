@@ -42,6 +42,22 @@ export class HeightField {
     this.depth = meta.heightMeters;  // z extent (south)
     this.vScale = CONFIG.verticalExaggeration;
     this.water = CONFIG.waterLevel;
+    // optional raised surfaces (ramps/bridges); each exposes height(x,z) -> world Y or null
+    this.features = [];
+  }
+
+  addFeature(f) {
+    this.features.push(f);
+  }
+
+  // highest feature surface at (x,z), or -Infinity if none cover it
+  _featureHeight(x, z) {
+    let h = -Infinity;
+    for (const f of this.features) {
+      const fy = f.height(x, z);
+      if (fy !== null && fy > h) h = fy;
+    }
+    return h;
   }
 
   // clamped-to-water corner height at integer grid (cx,cz)
@@ -78,18 +94,33 @@ export class HeightField {
     } else {
       h = h11 + (h01 - h11) * (1 - fx) + (h10 - h11) * (1 - fy);
     }
-    return h * this.vScale;
+    h *= this.vScale;
+    if (this.features.length) {
+      const fh = this._featureHeight(x, z);
+      if (fh > h) h = fh;
+    }
+    return h;
   }
 
-  // smooth terrain normal at world (x,z) via finite differences on the bilinear surface
+  // smooth surface height (bilinear terrain + features) for normals
+  _smoothSurface(x, z) {
+    const col = (x / this.width) * (this.gridW - 1);
+    const row = (z / this.depth) * (this.gridH - 1);
+    let h = this._bilinear(col, row) * this.vScale;
+    if (this.features.length) {
+      const fh = this._featureHeight(x, z);
+      if (fh > h) h = fh;
+    }
+    return h;
+  }
+
+  // smooth terrain normal at world (x,z) via finite differences
   getNormal(x, z, target = new THREE.Vector3()) {
     const e = 3.0; // meters
-    const toCol = (wx) => (wx / this.width) * (this.gridW - 1);
-    const toRow = (wz) => (wz / this.depth) * (this.gridH - 1);
-    const hL = this._bilinear(toCol(x - e), toRow(z)) * this.vScale;
-    const hR = this._bilinear(toCol(x + e), toRow(z)) * this.vScale;
-    const hD = this._bilinear(toCol(x), toRow(z - e)) * this.vScale;
-    const hU = this._bilinear(toCol(x), toRow(z + e)) * this.vScale;
+    const hL = this._smoothSurface(x - e, z);
+    const hR = this._smoothSurface(x + e, z);
+    const hD = this._smoothSurface(x, z - e);
+    const hU = this._smoothSurface(x, z + e);
     target.set(hL - hR, 2 * e, hD - hU).normalize();
     return target;
   }

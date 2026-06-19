@@ -21,6 +21,15 @@ html, body {
 
 #game { display: block; width: 100vw; height: 100vh; touch-action: none; }
 
+/* Cinematic vignette — subtle darkening at the edges, pure CSS, zero cost. */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(10, 16, 24, 0.45) 100%);
+}
+
 /* ---------- HUD ---------- */
 #hud {
   position: fixed;
@@ -82,24 +91,25 @@ html, body {
 }
 #hud-objective.flash { opacity: 1; transform: translateY(0); }
 
+/* Compact, low-profile distance readout so it never blocks the view. */
 #hud-prompt {
   position: absolute;
-  bottom: 96px;
+  bottom: 64px;
   left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  font-size: 15px;
+  transform: translateX(-50%);
+  font-size: 11.5px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 22px;
-  background: rgba(20, 32, 46, 0.55);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(242, 201, 138, 0.35);
-  color: #fff;
-  opacity: 0.55;
-  transition: opacity 0.3s, transform 0.3s;
+  letter-spacing: 0.3px;
+  padding: 3px 10px;
+  border-radius: 14px;
+  background: rgba(20, 32, 46, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.5;
+  transition: opacity 0.3s, color 0.3s;
   white-space: nowrap;
 }
-#hud-prompt.show { opacity: 1; transform: translateX(-50%) translateY(0); color: var(--gold); }
+#hud-prompt.show { opacity: 0.95; color: var(--gold); }
 
 #hud-speed {
   position: absolute;

@@ -58,6 +58,8 @@ function lookoutTower() {
 }
 
 const BUILDERS = { lighthouse, radar: radarTower, lookout: lookoutTower };
+// solid collision radius (meters) per landmark — the truck bumps into these
+const RADII = { lighthouse: 4, radar: 9, lookout: 4.5 };
 
 // Returns { group, pois: [{id,name,position:Vector3}] }
 export function buildPOIs(geojson, heightField) {
@@ -71,7 +73,12 @@ export function buildPOIs(geojson, heightField) {
     const obj = build();
     obj.position.set(x, y, z);
     group.add(obj);
-    pois.push({ id: f.properties.id, name: f.properties.name, position: new THREE.Vector3(x, y, z) });
+    pois.push({
+      id: f.properties.id,
+      name: f.properties.name,
+      position: new THREE.Vector3(x, y, z),
+      radius: RADII[f.properties.id] || 4,
+    });
   }
   return { group, pois };
 }

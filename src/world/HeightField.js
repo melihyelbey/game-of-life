@@ -4,6 +4,35 @@
 import * as THREE from "three";
 import { CONFIG } from "../config.js";
 
+// Bilinear sample of a raw grid at fractional (col,row), clamped to edges.
+function bilinear(grid, w, h, col, row) {
+  const c = Math.max(0, Math.min(w - 1, col));
+  const r = Math.max(0, Math.min(h - 1, row));
+  const x0 = Math.floor(c), y0 = Math.floor(r);
+  const x1 = Math.min(w - 1, x0 + 1), y1 = Math.min(h - 1, y0 + 1);
+  const fx = c - x0, fy = r - y0;
+  const a = grid[y0 * w + x0], b = grid[y0 * w + x1];
+  const d = grid[y1 * w + x0], e = grid[y1 * w + x1];
+  return a * (1 - fx) * (1 - fy) + b * fx * (1 - fy) + d * (1 - fx) * fy + e * fx * fy;
+}
+
+// Resample the elevation grid to a coarser resolution. The terrain mesh and the physics
+// height field then share the SAME grid, so the truck rests exactly on the visible
+// surface (no clipping through decimated geometry).
+export function downsampleHeights(src, meta, target) {
+  const dstW = Math.max(2, Math.min(target, meta.gridW));
+  const dstH = Math.max(2, Math.min(target, meta.gridH));
+  const out = new Float32Array(dstW * dstH);
+  for (let r = 0; r < dstH; r++) {
+    for (let c = 0; c < dstW; c++) {
+      const sc = (c / (dstW - 1)) * (meta.gridW - 1);
+      const sr = (r / (dstH - 1)) * (meta.gridH - 1);
+      out[r * dstW + c] = bilinear(src, meta.gridW, meta.gridH, sc, sr);
+    }
+  }
+  return { grid: out, meta: { ...meta, gridW: dstW, gridH: dstH } };
+}
+
 export class HeightField {
   constructor(heights, meta) {
     this.heights = heights;

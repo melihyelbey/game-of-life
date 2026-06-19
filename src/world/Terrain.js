@@ -6,11 +6,13 @@ import * as THREE from "three";
 import { CONFIG } from "../config.js";
 import { applyFogRamp } from "../render/FogRamp.js";
 
-export function buildTerrain(heightField, meta, segments = 384) {
+export function buildTerrain(heightField, meta) {
   const { widthMeters, heightMeters } = meta;
 
-  const segX = Math.min(segments, meta.gridW - 1);
-  const segZ = Math.min(segments, meta.gridH - 1);
+  // Render at exactly the height-field grid resolution so mesh vertices land on the
+  // physics surface -> the truck never clips through the visible ground.
+  const segX = meta.gridW - 1;
+  const segZ = meta.gridH - 1;
   const geo = new THREE.PlaneGeometry(widthMeters, heightMeters, segX, segZ);
   geo.rotateX(-Math.PI / 2); // lie flat, Y up
 

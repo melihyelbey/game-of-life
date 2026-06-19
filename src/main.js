@@ -3,8 +3,9 @@
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
 import { loadWorld } from "./world/DataLoader.js";
-import { HeightField } from "./world/HeightField.js";
+import { HeightField, downsampleHeights } from "./world/HeightField.js";
 import { buildTerrain } from "./world/Terrain.js";
+import { buildScatter } from "./world/Scatter.js";
 import { buildRoads } from "./world/Roads.js";
 import { buildPOIs } from "./world/PointsOfInterest.js";
 import { buildSky } from "./world/Sky.js";
@@ -27,12 +28,19 @@ async function main() {
   }
 
   const { meta, manifest, heights, roads } = world;
-  const heightField = new HeightField(heights, meta);
 
   // coarse pointer + no hover => treat as a touch device (phones/tablets)
   const isMobile =
     window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
   if (isMobile) document.body.classList.add("is-mobile");
+
+  // Resample elevation to the render resolution so the terrain mesh and the physics
+  // height field share ONE surface — the truck rests exactly on the visible ground.
+  const res =
+    (isMobile ? CONFIG.terrain.segmentsMobile : CONFIG.terrain.segmentsDesktop) + 1;
+  const surf = downsampleHeights(heights, meta, res);
+  const heightField = new HeightField(surf.grid, surf.meta);
+  const surfMeta = surf.meta;
 
   // --- renderer / scene / camera ---
   const canvas = document.getElementById("game");
@@ -52,12 +60,10 @@ async function main() {
   );
 
   // --- world content ---
-  const segments = isMobile
-    ? CONFIG.terrain.segmentsMobile
-    : CONFIG.terrain.segmentsDesktop;
   scene.add(buildSky(worldSize * 4));
   scene.add(buildLighting(worldSize));
-  scene.add(buildTerrain(heightField, meta, segments));
+  scene.add(buildTerrain(heightField, surfMeta));
+  scene.add(buildScatter(heightField, isMobile ? 0.5 : 1));
   scene.add(buildRoads(roads, heightField));
   const { group: poiGroup, pois } = buildPOIs(roads, heightField);
   scene.add(poiGroup);
@@ -69,6 +75,8 @@ async function main() {
     : { x: meta.widthMeters * 0.6, z: meta.heightMeters * 0.5 };
   const vehicle = new Vehicle(heightField, spawn.x, spawn.z);
   vehicle.heading = -Math.PI / 2; // face west, toward the park
+  // solid landmarks the truck bumps into
+  vehicle.obstacles = pois.map((p) => ({ x: p.position.x, z: p.position.z, radius: p.radius }));
   scene.add(vehicle.mesh);
 
   const input = new Input();
@@ -82,6 +90,11 @@ async function main() {
   });
 
   loading.hide();
+
+  // optional debug handle (only when the page is opened with ?debug) for verification
+  if (new URLSearchParams(location.search).has("debug")) {
+    window.__game = { vehicle, pois, heightField };
+  }
 
   // --- main loop ---
   const baseFov = CONFIG.camera.fov;

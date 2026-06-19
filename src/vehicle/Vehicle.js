@@ -12,6 +12,8 @@ export class Vehicle {
     this.position = new THREE.Vector3(startX, 0, startZ);
     this.heading = Math.PI;
     this.speed = 0;
+    this.obstacles = []; // [{x, z, radius}] solid landmarks to bump into
+    this.carRadius = 1.6;
     this._wheelSpin = 0;
     this._roll = 0;        // smoothed body roll from steering
     this._steerVis = 0;    // smoothed visual steer angle for front wheels
@@ -96,8 +98,22 @@ export class Vehicle {
     // integrate on XZ
     const fx = Math.sin(this.heading);
     const fz = Math.cos(this.heading);
-    const nx = this.position.x + fx * this.speed * dt;
-    const nz = this.position.z + fz * this.speed * dt;
+    let nx = this.position.x + fx * this.speed * dt;
+    let nz = this.position.z + fz * this.speed * dt;
+
+    // solid landmark collision: push the truck back out and kill momentum (a real bump)
+    for (const o of this.obstacles) {
+      const dx = nx - o.x;
+      const dz = nz - o.z;
+      const minDist = o.radius + this.carRadius;
+      const dist = Math.hypot(dx, dz);
+      if (dist < minDist && dist > 1e-3) {
+        nx = o.x + (dx / dist) * minDist;
+        nz = o.z + (dz / dist) * minDist;
+        this.speed *= -0.25; // bounce back
+      }
+    }
+
     if (!this.hf.isInBounds(nx, nz)) {
       this.speed *= -0.3; // soft bounce off the island edge
     } else {

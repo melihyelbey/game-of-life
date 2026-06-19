@@ -218,17 +218,25 @@ export class Vehicle {
       inBounds = false;
       this.speed *= -0.3; // soft bounce off the island edge
     } else {
-      // Don't let the truck drive INTO a raised feature's near-vertical face (a ramp's
-      // back wall or sides). The deck is a gentle slope and passes; a wall is a sudden
-      // step up far steeper than we could climb. Without this the ground teleports up
-      // under the truck and the slope-launch logic below flings it into the air when you
-      // hit the ramp from behind. Bump off it like any solid obstacle instead.
-      const fNew = this.hf.getFeatureHeight(nx, nz);
-      const horiz = Math.hypot(nx - this.position.x, nz - this.position.z);
-      const isWall = grounded && fNew !== null &&
-        (fNew - this.position.y) > horiz * c.maxClimbSlope + 0.05;
-      if (isWall) {
-        this.speed *= -0.2; // scrub speed, keep the old (x,z) so we stay below the lip
+      // Don't let the truck drive INTO a raised feature's tall vertical face (a ramp's back
+      // wall / a platform's side). Small steps — curbs, the ramp's own base, gentle decks —
+      // are climbable, so we gate on an ABSOLUTE step height (not a per-frame ratio: at low
+      // speed a ratio shrinks toward zero and even a tiny lip would wrongly stick the truck,
+      // the "bump and snag at the bottom" bug). When blocked, slide along whichever axis is
+      // free (the course walls are ~axis-aligned) so the truck glides along a wall instead
+      // of dead-sticking / ping-ponging; only a true corner bleeds speed.
+      const stepUp = (px, pz) => {
+        const f = this.hf.getFeatureHeight(px, pz);
+        return f === null ? -Infinity : f - this.position.y;
+      };
+      if (grounded && stepUp(nx, nz) > c.stepLimit) {
+        if (stepUp(nx, this.position.z) <= c.stepLimit) {
+          this.position.x = nx;       // slide along X, hug the wall
+        } else if (stepUp(this.position.x, nz) <= c.stepLimit) {
+          this.position.z = nz;       // slide along Z, hug the wall
+        } else {
+          this.speed *= 0.3;          // cornered: bleed speed (no bounce-back jitter)
+        }
       } else {
         this.position.x = nx;
         this.position.z = nz;

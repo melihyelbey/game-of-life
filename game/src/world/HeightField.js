@@ -129,7 +129,20 @@ export class HeightField {
     const hR = this._smoothSurface(x + e, z);
     const hD = this._smoothSurface(x, z - e);
     const hU = this._smoothSurface(x, z + e);
-    target.set(hL - hR, 2 * e, hD - hU).normalize();
+    let dx = hL - hR, dz = hD - hU;
+    // Clamp extreme tilts. At a raised-feature edge (a platform/ramp side) the height delta
+    // across the sample span is huge, which would tip the body almost on its side — the
+    // "truck flips over on the platform edge" bug. Cap the slope to a drivable angle so the
+    // body leans naturally on ramps but never lies down at a cliff edge.
+    const span = 2 * e;
+    const maxRatio = 0.7; // ~35°
+    const horiz = Math.hypot(dx, dz);
+    if (horiz > maxRatio * span) {
+      const k = (maxRatio * span) / horiz;
+      dx *= k;
+      dz *= k;
+    }
+    target.set(dx, span, dz).normalize();
     return target;
   }
 

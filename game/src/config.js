@@ -53,8 +53,8 @@ export const CONFIG = {
     slopePull: 0.8,      // how strongly gravity steals/adds speed on hills (x gravity)
     airControl: 1.4,     // how fast you can steer the trajectory while airborne
     airPitch: 6.0,       // how fast the body pitches to its flight arc
-    maxClimbSlope: 1.0,  // max rise:run a raised feature can step up before it's treated
-                         // as a solid wall (ramp deck ~0.44; a back/side wall is vertical)
+    stepLimit: 1.5,      // max vertical step (m) the truck climbs onto a raised feature in
+                         // one frame; taller = a solid wall (ramp back wall / platform side)
   },
 
   camera: {

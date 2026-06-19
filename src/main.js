@@ -112,7 +112,10 @@ async function main() {
 
   // optional debug handle (only when the page is opened with ?debug) for verification
   if (new URLSearchParams(location.search).has("debug")) {
-    window.__game = { vehicle, pois, heightField };
+    window.__game = {
+      vehicle, pois, heightField,
+      ramp: { x0: rampStart.x, z0: rampStart.z, heading: rampHeading, length: 34, height: 15 },
+    };
   }
 
   // --- main loop ---

@@ -29,7 +29,6 @@ export class Vehicle {
     this._quatTilt = new THREE.Quaternion();
     this._tmpQuat = new THREE.Quaternion();
     this._snapToGround();
-    this.prevGroundY = this.position.y;
   }
 
   _buildMesh() {
@@ -209,8 +208,6 @@ export class Vehicle {
     }
 
     // ---------- vertical: jumps + gravity (the classic car-game airtime) ----------
-    // Track the ground under the truck before/after the horizontal step so we know how
-    // fast the ground is rising; carry that as upward velocity over crests/ramps.
     const groundY = this.hf.getHeight(this.position.x, this.position.z);
     this.vy -= c.gravity * dt;
     let ny = this.position.y + this.vy * dt;
@@ -225,9 +222,18 @@ export class Vehicle {
         if (-this.vy > 14) this.speed *= 0.88; // scrub a little on a hard landing
         this.airborne = false;
       }
-      // follow the ground: vy = how fast the surface rises beneath us (= speed * slope)
-      this.vy = (groundY - this.prevGroundY) / Math.max(dt, 1e-4);
-      this.vy = THREE.MathUtils.clamp(this.vy, -400, 120);
+      // Follow the ground via the slope the truck JUST CLIMBED (backward difference over a
+      // few metres), not the raw frame-to-frame height jump. vy = speed * slope:
+      //  - climbing a hill/ramp builds upward velocity that flings you off the crest (the
+      //    backward slope is still positive at the lip, so the launch is preserved),
+      //  - a surface that simply steps up under you (driving onto the ramp) ramps the slope
+      //    in smoothly instead of producing a one-frame spike, so it no longer flings you.
+      const e2 = 2.6;
+      const fxh = Math.sin(this.heading), fzh = Math.cos(this.heading);
+      const hBehind = this.hf.getHeight(this.position.x - fxh * e2, this.position.z - fzh * e2);
+      const slopeF = (groundY - hBehind) / e2;
+      const cap = Math.abs(this.speed) * 1.5 + 8;
+      this.vy = THREE.MathUtils.clamp(this.speed * slopeF, -cap, cap);
     } else {
       // leaving / in the air
       if (!this.airborne) {
@@ -237,7 +243,6 @@ export class Vehicle {
       }
     }
     this.position.y = ny;
-    this.prevGroundY = groundY;
 
     // ---------- orientation ----------
     const targetRoll = grounded ? -input.steer * speedFactor * 0.12 : this._roll * 0.9;

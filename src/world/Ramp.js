@@ -55,7 +55,11 @@ export function buildRamp(opts) {
   geo.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
   geo.computeVertexNormals();
 
-  const deckMat = new THREE.MeshLambertMaterial({ color: 0x7a5230, flatShading: true });
+  const deckMat = new THREE.MeshLambertMaterial({
+    color: 0x7a5230,
+    flatShading: true,
+    side: THREE.DoubleSide, // visible from every angle (front included)
+  });
   applyFogRamp(deckMat);
   const mesh = new THREE.Mesh(geo, deckMat);
 

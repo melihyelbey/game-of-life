@@ -124,6 +124,7 @@ async function main() {
   let offCourse = 0;    // consecutive grounded frames spent off the course (seam guard)
   function frame() {
     const dt = Math.min(0.05, clock.getDelta());
+    for (const mv of course.movers) mv.update(dt); // animate elevators before physics reads them
     vehicle.update(dt, input.state);
     chase.update(dt, vehicle);
     hud.update(vehicle);

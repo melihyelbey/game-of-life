@@ -58,8 +58,65 @@ export function buildPlatform(opts) {
   return { group, feature: { height } };
 }
 
-// --- summit flag: a pole with a cloth that starts at the bottom and, when triggered,
-// slides up to the top (the player's reward interaction). -----------------------------
+// --- moving elevator: a deck that oscillates vertically inside a fixed shaft. Board it at
+// the bottom (aligned with the entry), ride up, drive off at the top (aligned with the
+// exit) — a timing mechanic. Vertical motion rides on the truck's normal ground-follow, so
+// no special carry logic is needed. Returns an extra update(dt) that animates the deck. ---
+export function buildLift(opts) {
+  const { x0, z0, heading, length: L, width: W, lowY, rise, period = 4, baseY, thickness = 1.2 } = opts;
+  const dirX = Math.sin(heading);
+  const dirZ = Math.cos(heading);
+  const perpX = Math.cos(heading);
+  const perpZ = -Math.sin(heading);
+  const state = { topY: lowY, t: 0 };
+
+  // live height: the deck's CURRENT top, within the (fixed) footprint
+  const height = (x, z) => {
+    const rx = x - x0;
+    const rz = z - z0;
+    const t = rx * dirX + rz * dirZ;
+    const lat = rx * perpX + rz * perpZ;
+    if (t < 0 || t > L || Math.abs(lat) > W / 2) return null;
+    return state.topY;
+  };
+
+  const group = new THREE.Group();
+  const deckMat = new THREE.MeshLambertMaterial({ color: 0x3a6b86, flatShading: true });
+  applyFogRamp(deckMat);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(W, thickness, L), deckMat);
+  deck.rotation.y = heading;
+  const cx = x0 + dirX * (L / 2);
+  const cz = z0 + dirZ * (L / 2);
+  deck.position.set(cx, lowY - thickness / 2, cz);
+  group.add(deck);
+
+  // fixed corner posts spanning the full travel = an elevator "shaft" so the motion reads
+  const postMat = new THREE.MeshLambertMaterial({ color: 0x2f3b44, flatShading: true });
+  applyFogRamp(postMat);
+  const highY = lowY + rise;
+  const half = W / 2 - 0.5;
+  for (const tt of [0.08, 0.92]) {
+    for (const lat of [-half, half]) {
+      const px = x0 + dirX * (tt * L) + perpX * lat;
+      const pz = z0 + dirZ * (tt * L) + perpZ * lat;
+      const ph = Math.max(0.5, highY - baseY);
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.4, ph, 0.4), postMat);
+      post.position.set(px, baseY + ph / 2, pz);
+      group.add(post);
+    }
+  }
+
+  const update = (dt) => {
+    state.t += dt;
+    const ph = (state.t / period) * Math.PI * 2;
+    state.topY = lowY + rise * (0.5 - 0.5 * Math.cos(ph)); // lowY..highY, starts at lowY
+    deck.position.y = state.topY - thickness / 2;
+  };
+
+  return { group, feature: { height }, update };
+}
+
+
 export function buildFlag(opts) {
   const { x, z, baseY, poleH = 9, triggerRadius = 7 } = opts;
   const group = new THREE.Group();
@@ -188,22 +245,33 @@ export function buildConfetti(maxParticles = 220) {
 // narrow platforms (small width) punish sloppy landings, and every gap sits right after a
 // ramp so you launch with real air. A fall sends you all the way back to the start.
 const LAYOUT = [
-  { type: "ramp", length: 22, height: 6, width: 12 },    // 1 gentle launch (west)
+  // -- Section A: warm-up jump (straight, west) --
+  { type: "ramp", length: 22, height: 6, width: 12 },    // gentle launch
   { type: "gap", length: 5 },                            //   JUMP #1
-  { type: "platform", length: 20, width: 11 },           // 2 land (generous)
-  { type: "corner", turn: Math.PI / 2, size: 12 },       //   bend LEFT (now south)
-  { type: "ramp", length: 20, height: 6, width: 10 },    // 3 climb
+  { type: "platform", length: 20, width: 11 },           // land
+
+  // -- Section B: switchback tower. Climbs on the ramps and steps SOUTH on each U-turn so
+  // the lanes never stack on top of each other (the height field can't overlap itself).
+  // The thin connectors between corners are narrow balance bridges. --
+  { type: "ramp", length: 16, height: 6, width: 10 },    // lane 1 climb (west)
+  { type: "corner", turn: Math.PI / 2, size: 11 },       //   -> south
+  { type: "platform", length: 14, width: 6 },            //   narrow BRIDGE (steps south)
+  { type: "corner", turn: Math.PI / 2, size: 11 },       //   -> east
+  { type: "ramp", length: 16, height: 6, width: 10 },    // lane 2 climb (east, offset south)
+  { type: "corner", turn: -Math.PI / 2, size: 11 },      //   -> south
+  { type: "platform", length: 14, width: 6 },            //   narrow BRIDGE (steps south)
+  { type: "corner", turn: -Math.PI / 2, size: 11 },      //   -> west
+  { type: "ramp", length: 16, height: 6, width: 10 },    // lane 3 climb (west)
+
+  // -- Section C: moving elevator (timing). Board at the bottom, ride up, drive off the top. --
+  { type: "platform", length: 12, width: 10 },           // boarding pad
+  { type: "lift", length: 14, width: 11, rise: 12, period: 4.0 }, // ELEVATOR up 12 m
+  { type: "platform", length: 14, width: 9 },            // exit pad
+
+  // -- Section D: final jump + summit --
+  { type: "ramp", length: 16, height: 5, width: 9 },     // climb
   { type: "gap", length: 5 },                            //   JUMP #2
-  { type: "platform", length: 18, width: 8 },            // 4 NARROW land (lateral precision)
-  { type: "corner", turn: -Math.PI / 2, size: 12 },      //   bend RIGHT (back west)
-  { type: "ramp", length: 20, height: 6, width: 9 },     // 5 climb
-  { type: "gap", length: 6 },                            //   JUMP #3
-  { type: "platform", length: 18, width: 8 },            // 6 NARROW land
-  { type: "ramp", length: 18, height: 6, width: 9 },     // 7 climb
-  { type: "gap", length: 5 },                            //   JUMP #4
-  { type: "platform", length: 18, width: 9 },            // 8 land
-  { type: "ramp", length: 16, height: 5, width: 10 },    // 9 final climb
-  { type: "platform", length: 22, width: 16, summit: true }, // 10 summit pad + flag
+  { type: "platform", length: 22, width: 16, summit: true }, // summit pad + flag
 ];
 
 // start: { x, z, heading } — the low end of the first segment and the climb direction.
@@ -211,6 +279,7 @@ const LAYOUT = [
 export function buildCourse(heightField, start) {
   const group = new THREE.Group();
   const features = [];
+  const movers = [];   // pieces with an update(dt) (moving elevators)
   const segments = []; // per-piece metadata (used by tests + ?debug)
   const W = 12;
   const groundAt = (px, pz) => heightField.getHeight(px, pz); // terrain (features not added yet)
@@ -298,6 +367,16 @@ export function buildCourse(heightField, start) {
       group.add(piece.group);
       features.push(piece.feature);
       topY = sBaseY + seg.height;
+    } else if (seg.type === "lift") {
+      const piece = buildLift({
+        x0: x, z0: z, heading, length: seg.length, width,
+        lowY: sBaseY, rise: seg.rise, period: seg.period,
+        baseY: Math.min(groundAt(x, z), sBaseY - 1),
+      });
+      group.add(piece.group);
+      features.push(piece.feature);
+      movers.push(piece);
+      topY = sBaseY + seg.rise; // exit aligns with the top of the lift's travel
     } else if (seg.type === "platform") {
       const piece = buildPlatform({
         x0: x, z0: z, heading, length: seg.length, width, topY,
@@ -329,5 +408,5 @@ export function buildCourse(heightField, start) {
     heading: start.heading,
   };
 
-  return { group, features, startPose, flag, summitPos, topY, segments };
+  return { group, features, movers, startPose, flag, summitPos, topY, segments };
 }

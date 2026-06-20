@@ -7,7 +7,7 @@
 <meta name="description" content="Şirketler, atölyeler ve bireyler için modern, hızlı ve yüksek performanslı web çözümleri." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <style>
@@ -225,6 +225,56 @@ footer{border-top:1px solid var(--line);padding:46px 0 60px;margin-top:30px}
   .tl-node{width:44px;height:44px}
 }
 
+/* ===== PROJE VİTRİNİ ===== */
+.project{display:grid;grid-template-columns:1fr 1.12fr;gap:36px;align-items:center}
+.pj-info{display:flex;flex-direction:column;align-items:flex-start;gap:15px}
+.pj-cat{font-family:'JetBrains Mono';font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--red);background:var(--red-tint);border:1px solid var(--red-tint);padding:.42rem .8rem;border-radius:99px}
+.pj-name{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(2.2rem,5vw,3.2rem);letter-spacing:.01em;line-height:.95;text-transform:uppercase}
+.pj-desc{color:var(--ink-soft);font-size:1.02rem;max-width:46ch}
+.pj-feats{list-style:none;display:flex;flex-direction:column;gap:10px;margin:2px 0}
+.pj-feats li{display:flex;gap:11px;align-items:flex-start;color:var(--ink-soft);font-size:.94rem}
+.pj-feats li::before{content:"✦";color:var(--red);flex-shrink:0;line-height:1.5}
+.pj-tags{display:flex;flex-wrap:wrap;gap:8px}
+.pj-tags span{font-family:'JetBrains Mono';font-size:.72rem;color:var(--ink-faint);border:1px solid var(--line);border-radius:8px;padding:.34rem .62rem}
+.pj-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+
+/* tarayıcı çerçevesi + canlı önizleme */
+.pj-preview{position:relative;perspective:1400px}
+.pj-link{display:block;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0a0a0c;box-shadow:0 45px 90px -45px rgba(0,0,0,.92);transition:transform .55s cubic-bezier(.22,1,.36,1),box-shadow .55s}
+.pj-link:hover{transform:translateY(-8px);box-shadow:0 55px 110px -45px rgba(0,0,0,.95)}
+.pj-bar{display:flex;align-items:center;gap:7px;padding:11px 15px;background:#1b1b1f;border-bottom:1px solid var(--line-soft)}
+.pj-bar i{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.pj-bar i:nth-child(1){background:#ff5f57}.pj-bar i:nth-child(2){background:#febc2e}.pj-bar i:nth-child(3){background:#28c840}
+.pj-url{margin-left:10px;flex:1;font-family:'JetBrains Mono';font-size:.72rem;color:var(--ink-faint);background:#101014;border-radius:7px;padding:5px 12px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-url b{color:var(--ink-soft);font-weight:500}
+
+/* Hairbey hero — gerçek görsel + birebir stil */
+.pj-screen{position:relative;aspect-ratio:16/10;overflow:hidden;background:#0d0d0f}
+.pj-shot{position:absolute;inset:0;background:url("https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;transform:scale(1.03);transition:transform 6s ease}
+.pj-link:hover .pj-shot{transform:scale(1.1)}
+.pj-screen::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,13,15,.42),rgba(13,13,15,.86))}
+.pj-mock{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:center;padding:clamp(20px,5.5%,52px);color:#f3efe7}
+.pj-mnav{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:clamp(13px,3.6%,24px) clamp(20px,5.5%,46px)}
+.pj-mbrand{font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(.95rem,2.4vw,1.4rem);letter-spacing:.02em}
+.pj-mbrand b{color:#c9a14a}
+.pj-mmenu{display:flex;gap:clamp(11px,2.7vw,24px);font-family:'Poppins',sans-serif;font-size:clamp(.56rem,1.5vw,.8rem);color:#cfcabf}
+.pj-mmenu span:first-child{color:#c9a14a}
+.pj-meyebrow{font-family:'Poppins',sans-serif;letter-spacing:.24em;text-transform:uppercase;font-size:clamp(.5rem,1.4vw,.72rem);color:#c9a14a;margin-bottom:clamp(9px,2%,15px)}
+.pj-mtitle{font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(1.55rem,5.6vw,3.2rem);line-height:1.04;margin-bottom:clamp(9px,2%,17px);max-width:13ch}
+.pj-mtitle em{color:#c9a14a;font-style:normal}
+.pj-msub{font-family:'Poppins',sans-serif;font-weight:300;font-size:clamp(.66rem,1.7vw,.96rem);color:#dcd8d0;max-width:30ch;margin-bottom:clamp(13px,3%,24px)}
+.pj-mbtns{display:flex;gap:10px;flex-wrap:wrap}
+.pj-mb{font-family:'Poppins',sans-serif;font-weight:500;font-size:clamp(.6rem,1.5vw,.82rem);padding:clamp(.46rem,1.5%,.72rem) clamp(.85rem,2.6%,1.35rem);border-radius:10px;white-space:nowrap}
+.pj-mb.gold{background:#c9a14a;color:#1a1407}
+.pj-mb.ghost{border:1px solid rgba(243,239,231,.42);color:#f3efe7}
+.pj-badge{position:absolute;bottom:14px;right:14px;z-index:3;display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:.66rem;letter-spacing:.05em;color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.26);padding:6px 12px;border-radius:99px;backdrop-filter:blur(4px);opacity:0;transform:translateY(7px);transition:.3s}
+.pj-link:hover .pj-badge{opacity:1;transform:none}
+
+@media(max-width:900px){
+  .project{grid-template-columns:1fr;gap:26px}
+  .pj-preview{order:-1}
+}
+
 /* ===== SCROLLYTELLING ===== */
 .split-letters{overflow:visible}
 .split-letters .ltr{
@@ -342,6 +392,7 @@ body.modal-open footer{
       <li><a href="#hizmetler">Hizmetler</a></li>
       <li><a href="#neden">Neden Ben?</a></li>
       <li><a href="#surec">Süreç</a></li>
+      <li><a href="#projeler">Projeler</a></li>
       <li><a href="#iletisim">İletişim</a></li>
       <li><a href="#iletisim" class="nav-cta">İletişime Geç</a></li>
     </ul>
@@ -474,6 +525,59 @@ body.modal-open footer{
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- PROJELER -->
+<section id="projeler">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow"><span class="dot"></span>Çalışmalarım</span>
+      <h2>Hayata geçirdiğim <span class="script draw-line">projeler</span></h2>
+      <p>Tasarımdan yayına kadar baştan sona geliştirdiğim gerçek bir proje. Aşağıdan canlı sürümünü inceleyebilir, tek tıkla ziyaret edebilirsiniz.</p>
+    </div>
+
+    <article class="project">
+      <div class="pj-info reveal">
+        <span class="pj-cat">Berber & Online Randevu Sistemi</span>
+        <h3 class="pj-name">Hairbey</h3>
+        <p class="pj-desc">Bursa Nilüfer'deki bir erkek kuaförü için baştan sona tasarlayıp geliştirdiğim, online randevu alabilen modern bir web sitesi. Şık tasarımın yanında çalışan bir randevu altyapısı da içerir.</p>
+        <ul class="pj-feats">
+          <li>WhatsApp ile saniyeler içinde randevu</li>
+          <li>Dolu saat takibi &amp; geçmiş tarih/saat engeli</li>
+          <li>Yönetici paneli — Netlify Functions + Blobs altyapısı</li>
+          <li>Mobil öncelikli, hızlı ve SEO uyumlu yapı</li>
+        </ul>
+        <div class="pj-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Netlify</span><span>Serverless</span></div>
+        <div class="pj-actions">
+          <a class="btn btn-primary" href="https://hairbey.netlify.app/" target="_blank" rel="noopener">Canlı Siteyi Gör →</a>
+          <a class="btn btn-ghost" href="#iletisim">Benzerini İstiyorum</a>
+        </div>
+      </div>
+
+      <div class="pj-preview reveal">
+        <a class="pj-link" href="https://hairbey.netlify.app/" target="_blank" rel="noopener" aria-label="Hairbey sitesini yeni sekmede aç">
+          <div class="pj-bar"><i></i><i></i><i></i><span class="pj-url">www.<b>hairbey.netlify</b>.app</span></div>
+          <div class="pj-screen">
+            <div class="pj-shot" aria-hidden="true"></div>
+            <div class="pj-mnav">
+              <span class="pj-mbrand">Hair<b>bey</b></span>
+              <span class="pj-mmenu"><span>Anasayfa</span><span>Hizmetler</span><span>Randevu</span></span>
+            </div>
+            <div class="pj-mock">
+              <span class="pj-meyebrow">Bursa Nilüfer · Erkek Kuaförü</span>
+              <div class="pj-mtitle">Hairbey'de <em>Tarzını</em> Keşfet</div>
+              <p class="pj-msub">Modern berberlik, ustalık ve şıklık bir arada — randevunu saniyeler içinde al.</p>
+              <div class="pj-mbtns">
+                <span class="pj-mb gold">Hemen Randevu Al</span>
+                <span class="pj-mb ghost">Hizmetlerimiz</span>
+              </div>
+            </div>
+            <span class="pj-badge">↗ Canlı siteyi aç</span>
+          </div>
+        </a>
+      </div>
+    </article>
   </div>
 </section>
 

@@ -250,6 +250,9 @@ footer{border-top:1px solid var(--line);padding:46px 0 60px;margin-top:30px}
 
 /* Hairbey hero — gerçek görsel + birebir stil */
 .pj-screen{position:relative;aspect-ratio:16/10;overflow:hidden;background:#0d0d0f}
+/* canlı gömme (iframe) — yüklenince poster'ın üstünü kaplar */
+.pj-frame{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none;z-index:2;background:#0d0d0f;opacity:0;transition:opacity .6s ease}
+.pj-screen.embed-on .pj-frame{opacity:1}
 .pj-shot{position:absolute;inset:0;background:url("https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;transform:scale(1.03);transition:transform 6s ease}
 .pj-link:hover .pj-shot{transform:scale(1.1)}
 .pj-screen::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,13,15,.42),rgba(13,13,15,.86))}
@@ -558,7 +561,8 @@ body.modal-open footer{
       <div class="pj-preview reveal">
         <a class="pj-link" href="https://hairbey.netlify.app/" target="_blank" rel="noopener" aria-label="Hairbey sitesini yeni sekmede aç">
           <div class="pj-bar"><i></i><i></i><i></i><span class="pj-url">www.<b>hairbey.netlify</b>.app</span></div>
-          <div class="pj-screen">
+          <div class="pj-screen" data-embed>
+            <!-- canlı gömme yüklenmezse görünen birebir poster -->
             <div class="pj-shot" aria-hidden="true"></div>
             <div class="pj-mnav">
               <span class="pj-mbrand">Hair<b>bey</b></span>
@@ -573,6 +577,8 @@ body.modal-open footer{
                 <span class="pj-mb ghost">Hizmetlerimiz</span>
               </div>
             </div>
+            <!-- gerçek sitenin canlı önizlemesi -->
+            <iframe class="pj-frame" id="pjFrame" src="https://hairbey.netlify.app/" title="Hairbey — canlı önizleme" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true" referrerpolicy="no-referrer"></iframe>
             <span class="pj-badge">↗ Canlı siteyi aç</span>
           </div>
         </a>
@@ -638,9 +644,28 @@ const header=$('#header');
 addEventListener('scroll',()=>header.classList.toggle('scrolled',scrollY>30));
 
 const burger=$('#burger'),navLinks=$('#navLinks');
-const toggleMenu=open=>{const on=open??!navLinks.classList.contains('open');navLinks.classList.toggle('open',on);burger.classList.toggle('open',on);};
-burger.addEventListener('click',()=>toggleMenu());
+burger.setAttribute('aria-controls','navLinks');burger.setAttribute('aria-expanded','false');
+const toggleMenu=open=>{const on=open??!navLinks.classList.contains('open');navLinks.classList.toggle('open',on);burger.classList.toggle('open',on);burger.setAttribute('aria-expanded',on?'true':'false');};
+burger.addEventListener('click',e=>{e.stopPropagation();toggleMenu();});
 navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggleMenu(false)));
+// menü dışına tıklayınca / Esc ile kapansın
+document.addEventListener('click',e=>{if(navLinks.classList.contains('open')&&!navLinks.contains(e.target)&&!burger.contains(e.target))toggleMenu(false);});
+addEventListener('keydown',e=>{if(e.key==='Escape')toggleMenu(false);});
+
+// === PROJE VİTRİNİ — canlı iframe ölçekleyici + gömülemezse poster'a düş ===
+(function(){
+  const screen=document.querySelector('.pj-screen[data-embed]');if(!screen)return;
+  const frame=document.getElementById('pjFrame');if(!frame)return;
+  const DW=1280; // iframe mantıksal genişliği (masaüstü görünümü)
+  const fit=()=>{const w=screen.clientWidth,h=screen.clientHeight;if(!w||!h)return;const s=w/DW;frame.style.transform='scale('+s+')';frame.style.height=(h/s)+'px';};
+  fit();
+  if(window.ResizeObserver)new ResizeObserver(fit).observe(screen);
+  addEventListener('resize',fit);
+  let loaded=false;
+  frame.addEventListener('load',()=>{loaded=true;screen.classList.add('embed-on');});
+  // 5 sn içinde yüklenmezse (gömme engelliyse) iframe'i kaldır, birebir poster görünsün
+  setTimeout(()=>{if(!loaded){frame.remove();}},5000);
+})();
 
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}});});
 

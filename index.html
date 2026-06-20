@@ -695,6 +695,13 @@ form.addEventListener('submit',e=>{
 
 const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});},{threshold:.15});
 document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3*.08)+'s';io.observe(el);});
+// güvenlik ağı: IntersectionObserver herhangi bir cihazda tetiklenmezse
+// içerik asla gizli kalmasın — scroll/load ile görünür alandakileri aç
+const revealNow=()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>{if(el.getBoundingClientRect().top<innerHeight*0.92)el.classList.add('in');});
+addEventListener('scroll',revealNow,{passive:true});
+addEventListener('load',revealNow);revealNow();
+// son çare: 4 sn sonra hâlâ gizli kalan hiçbir şey kalmasın
+setTimeout(()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>el.classList.add('in')),4000);
 
 /* ---- hero: seyrek dolasan kirmizi cizgiler ---- */
 (function(){

@@ -1,369 +1,871 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Melih Yelbey — Web Sistemleri & Dijital Çözümler</title>
+<meta name="description" content="Şirketler, atölyeler ve bireyler için modern, hızlı ve yüksek performanslı web çözümleri." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+:root{
+  --bg:#0c0c0e;
+  --bg-soft:#151517;
+  --panel:#161618;
+  --ink:#ffffff;
+  --ink-soft:#d6d6da;
+  --ink-faint:#8e8e96;
+  --line:rgba(255,255,255,.12);
+  --line-soft:rgba(255,255,255,.07);
+  --red:#ff5436;
+  --red-deep:#e8401f;
+  --red-tint:rgba(255,84,54,.12);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+  background-size:72px 72px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000,transparent 70%);
+          mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000,transparent 70%);
+}
+a{color:inherit;text-decoration:none}
+.wrap{width:min(1180px,92vw);margin:0 auto}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ink-soft);display:inline-flex;align-items:center;gap:.55rem;font-weight:500
+}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
 
-  <!-- ===== SEO / META ===== -->
-  <title>Hairbey | Bursa Nilüfer Berber & Erkek Kuaförü — Online Randevu</title>
-  <meta name="description" content="Hairbey — Bursa Nilüfer Güngören Mahallesi'nde profesyonel berber ve erkek kuaförü. Saç kesimi, sakal tıraşı ve bakım hizmetleri. WhatsApp ile kolay randevu." />
-  <meta name="theme-color" content="#0d0d0f" />
-  <meta name="author" content="Hairbey" />
+/* ===== NAV ===== */
+header{position:fixed;top:0;left:0;right:0;z-index:60;transition:.3s}
+header.scrolled{background:rgba(12,12,14,.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--line-soft)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:76px}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1.15rem;letter-spacing:-.02em}
+.brand .logo{height:38px;width:auto;display:block}
+.nav-links{display:flex;gap:2.1rem;align-items:center;list-style:none}
+.nav-links a{font-size:.92rem;color:var(--ink-soft);position:relative;transition:.2s;font-weight:500}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:var(--red);transition:.25s}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{padding:.6rem 1.2rem;border-radius:99px;background:var(--ink);color:var(--bg)!important;font-weight:600}
+.nav-cta:hover{background:var(--red);color:#fff!important}
+.nav-cta::after{display:none}
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;z-index:70}
+.burger span{width:24px;height:2px;background:var(--ink);border-radius:2px;transition:.3s}
+.burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
-  <!-- Open Graph (sosyal medya paylaşımı) -->
-  <meta property="og:title" content="Hairbey | Bursa Nilüfer Berber" />
-  <meta property="og:description" content="Profesyonel berber & erkek kuaförü. WhatsApp ile kolay randevu." />
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="tr_TR" />
+/* ===== HERO ===== */
+.hero{padding:150px 0 70px;position:relative}
+.hero-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.hero-top{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:.72rem;letter-spacing:.12em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:56px;flex-wrap:wrap;gap:12px}
+.hero-top .r{display:inline-flex;align-items:center;gap:.5rem}
+.hero-top .r .dot{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.hero h1{font-weight:400;line-height:.86;letter-spacing:0}
+.hero h1 .grot{
+  display:block;font-family:'Anton',sans-serif;font-weight:400;
+  font-size:clamp(3.2rem,12vw,9rem);text-transform:uppercase;letter-spacing:.01em;color:var(--ink);
+  line-height:1.04;overflow:visible
+}
+.hero h1 .script{
+  display:block;font-family:'Kalam',cursive;color:var(--red);
+  font-size:clamp(2.6rem,9.5vw,7.5rem);line-height:1.15;margin-top:.02em;font-weight:700;overflow:visible
+}
+.hero-lower{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;margin-top:46px}
+.hero p.lead{font-size:1.08rem;color:var(--ink-soft);max-width:40ch}
+.hero-actions{display:flex;gap:.9rem;flex-wrap:wrap}
+.btn{
+  padding:.95rem 1.7rem;border-radius:10px;font-weight:600;font-size:.93rem;cursor:pointer;
+  border:1px solid transparent;transition:.25s;display:inline-flex;align-items:center;gap:.55rem;font-family:'Inter'
+}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-deep);transform:translateY(-2px);box-shadow:0 12px 30px -10px rgba(255,84,54,.55)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink);background:rgba(255,255,255,.06)}
+.hero-strip{display:flex;gap:0;border-top:1px solid var(--line);margin-top:64px;flex-wrap:wrap}
+.hero-strip div{flex:1;min-width:140px;padding:22px 26px 0 0}
+.hero-strip .num{font-weight:700;font-size:1.6rem;letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem}
+.hero-strip .num .dot{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.hero-strip .lbl{font-size:.74rem;color:var(--ink-faint);font-family:'JetBrains Mono';text-transform:uppercase;letter-spacing:.1em;margin-top:.5rem}
 
-  <!-- ===== FONTLAR ===== -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+/* ===== SECTIONS ===== */
+section{padding:104px 0;position:relative}
+.sec-head{max-width:640px;margin-bottom:56px}
+.sec-head h2{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(2.2rem,5.5vw,4rem);text-transform:uppercase;letter-spacing:.01em;line-height:.95;margin:1.1rem 0 1rem;color:var(--ink)}
+.sec-head h2 .script{font-family:'Kalam',cursive;color:var(--red);text-transform:none;font-size:1.15em;letter-spacing:0}
+.sec-head p{color:var(--ink-soft);font-size:1.05rem}
 
-  <!-- ===== STİL ===== -->
-  <link rel="stylesheet" href="css/styles.css" />
+/* services */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{
+  background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);padding:34px 30px;
+  position:relative;overflow:hidden;transition:.3s;display:flex;flex-direction:column
+}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:.35s}
+.card:hover{border-color:var(--line);box-shadow:0 28px 50px -26px rgba(0,0,0,.8)}
+.card:hover::before{transform:scaleX(1)}
+.card .idx{font-family:'JetBrains Mono';font-size:.76rem;color:var(--red);margin-bottom:20px;letter-spacing:.08em;text-transform:uppercase}
+.card .ico{font-size:1.7rem;margin-bottom:14px}
+.card h3{font-weight:700;font-size:1.22rem;margin-bottom:.6rem;letter-spacing:-.01em}
+.card p{color:var(--ink-soft);font-size:.94rem;flex:1;margin-bottom:22px}
+.card .more{background:none;border:0;color:var(--ink);font-family:'JetBrains Mono';font-size:.78rem;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;align-self:flex-start;letter-spacing:.04em;border-bottom:1px solid var(--line);padding-bottom:3px;transition:.2s;text-transform:uppercase}
+.card .more:hover{color:var(--red);border-color:var(--red)}
+.card .more span{transition:.25s}
+.card .more:hover span{transform:translateX(4px)}
 
-  <!-- Favicon (basit makas emoji) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💈</text></svg>" />
+/* why */
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.why{border:1px solid var(--line-soft);border-radius:var(--r);padding:38px 34px;background:var(--bg-soft);display:flex;gap:22px;align-items:flex-start}
+.why .step{font-family:'Anton',sans-serif;font-size:2.4rem;color:var(--red);flex-shrink:0;line-height:.9}
+.why h3{font-weight:700;font-size:1.2rem;margin-bottom:.5rem;letter-spacing:-.01em}
+.why p{color:var(--ink-soft);font-size:.94rem}
+
+/* contact */
+.contact-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:50px;align-items:start}
+.contact-info h3{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(2rem,4.5vw,3rem);text-transform:uppercase;line-height:.95;margin-bottom:.6rem}
+.contact-info h3 .script{font-family:'Kalam',cursive;color:var(--red);text-transform:none;font-size:1.15em}
+.contact-info p{color:var(--ink-soft);margin-bottom:28px}
+.ci-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.ci-list a{display:flex;align-items:center;gap:15px;padding:15px 18px;border:1px solid var(--line-soft);border-radius:12px;transition:.25s;background:var(--bg-soft)}
+.ci-list a:hover{border-color:var(--red);transform:translateX(4px)}
+.ci-list .ci-ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--red-tint);font-size:1.05rem}
+.ci-list .ci-t{font-size:.74rem;color:var(--ink-faint);font-family:'JetBrains Mono';text-transform:uppercase;letter-spacing:.08em}
+.ci-list .ci-v{font-size:.95rem;color:var(--ink);font-weight:600}
+
+form{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);padding:34px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.76rem;color:var(--ink-soft);margin-bottom:8px;font-family:'JetBrains Mono';text-transform:uppercase;letter-spacing:.08em}
+.field input,.field textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:13px 15px;color:var(--ink);font-family:inherit;font-size:.95rem;transition:.2s;resize:vertical}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink-faint)}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint)}
+.field textarea{min-height:120px}
+form .btn-primary{width:100%;justify-content:center}
+.form-note{font-size:.74rem;color:var(--ink-faint);text-align:center;margin-top:14px;font-family:'JetBrains Mono'}
+.form-success{display:none;align-items:center;gap:12px;margin-top:18px;padding:14px 16px;border-radius:10px;background:rgba(46,160,90,.14);border:1px solid rgba(46,160,90,.4);color:#7fdca0;font-size:.92rem;font-weight:500}
+.form-success.show{display:flex;animation:fadeUp .4s ease}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:46px 0 60px;margin-top:30px}
+.foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.foot-social{display:flex;gap:12px}
+.foot-social a{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;border:1px solid var(--line);background:var(--bg-soft);transition:.25s}
+.foot-social a:hover{border-color:var(--red);background:var(--red);transform:translateY(-3px)}
+.foot-social svg{width:19px;height:19px;fill:var(--ink-soft);transition:.25s}
+.foot-social a:hover svg{fill:#fff}
+.foot p{color:var(--ink-faint);font-size:.85rem}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:.3s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:42px;max-width:520px;width:100%;position:relative;transform:translateY(20px) scale(.97);transition:.3s;box-shadow:0 40px 90px -24px rgba(0,0,0,.9)}
+.modal-overlay.open .modal{transform:none}
+.modal .m-ico{font-size:2rem;margin-bottom:16px}
+.modal .m-idx{font-family:'JetBrains Mono';font-size:.76rem;color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.modal h3{font-weight:700;font-size:1.5rem;margin-bottom:1rem;letter-spacing:-.01em}
+.modal p{color:var(--ink-soft);margin-bottom:1.2rem}
+.modal ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.modal li{display:flex;gap:12px;color:var(--ink-soft);font-size:.95rem;align-items:flex-start}
+.modal li::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--red);margin-top:8px;flex-shrink:0}
+.modal-close{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--ink-soft);font-size:1.2rem;cursor:pointer;transition:.2s;display:grid;place-items:center}
+.modal-close:hover{color:#fff;background:var(--red);border-color:var(--red);transform:rotate(90deg)}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:.7s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .hero{padding:128px 0 60px}
+  .hero-lower{grid-template-columns:1fr}
+  .contact-grid,.why-grid{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+  .hero-strip div{flex:1 1 44%;padding:18px 18px 0 0}
+  .burger{display:flex}
+  .nav-links{position:fixed;top:0;right:0;height:100vh;width:min(78vw,320px);background:rgba(12,12,14,.98);backdrop-filter:blur(16px);flex-direction:column;justify-content:center;gap:1.8rem;transform:translateX(100%);transition:.4s cubic-bezier(.4,0,.2,1);border-left:1px solid var(--line);padding:0 40px}
+  .nav-links.open{transform:none}
+  .nav-links a{font-size:1.2rem}
+}
+/* ===== SÜREÇ ZAMAN ÇİZELGESİ ===== */
+#surec .timeline{position:relative;max-width:780px;margin-top:6px}
+.tl-rail{position:absolute;left:23px;top:10px;bottom:10px;width:2px;background:var(--line);border-radius:2px;overflow:hidden}
+.tl-fill{position:absolute;inset:0;background:linear-gradient(180deg,var(--red),var(--red-deep));transform:scaleY(0);transform-origin:top;border-radius:2px;will-change:transform}
+.tl-step{position:relative;display:flex;gap:24px;padding-bottom:38px}
+.tl-step:last-child{padding-bottom:0}
+.tl-node{
+  position:relative;z-index:1;flex-shrink:0;width:48px;height:48px;border-radius:50%;
+  background:var(--bg-soft);border:2px solid var(--line);display:grid;place-items:center;
+  transition:border-color .45s,background .45s
+}
+.tl-node::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--ink-faint);transition:background .45s,box-shadow .45s}
+.tl-step.on .tl-node{border-color:var(--red);background:#191113}
+.tl-step.on .tl-node::after{background:var(--red);box-shadow:0 0 14px var(--red)}
+.tl-card{flex:1;background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);padding:26px 28px}
+.tl-num{font-family:'JetBrains Mono';font-size:.76rem;color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.tl-card h3{font-weight:700;font-size:1.16rem;margin-bottom:.45rem;letter-spacing:-.01em}
+.tl-card p{color:var(--ink-soft);font-size:.94rem}
+
+@media(max-width:900px){
+  .tl-rail{left:21px}
+  .tl-node{width:44px;height:44px}
+}
+
+/* ===== SCROLLYTELLING ===== */
+.split-letters{overflow:visible}
+.split-letters .ltr{
+  display:inline-block;will-change:transform,opacity;
+  line-height:1.15;padding:.08em 0
+}
+/* harfler bölündükten sonra başlangıçta gizli (JS açar); JS yoksa görünür kalsın */
+.js-ready .split-letters .ltr{opacity:0}
+.scrolly-cards .scard{will-change:transform,opacity}
+/* pin sırasında bölüm yüksekliği için sarmalayıcı */
+.svc-pin{position:relative}
+/* ===== ÖZEL KÜRSÖR ===== */
+/* yalnızca gerçek fare + hareket azaltma kapalıyken aktif (JS html'e .cur-on ekler) */
+html.cur-on, html.cur-on *{cursor:none!important}
+/* yazı alanlarında doğal imleç geri gelsin */
+html.cur-on input, html.cur-on textarea{cursor:text!important}
+.cur-dot,.cur-ring{
+  position:fixed;top:0;left:0;z-index:9999;pointer-events:none;border-radius:50%;
+  opacity:0;transition:opacity .25s ease;will-change:transform
+}
+html.cur-on .cur-dot,html.cur-on .cur-ring{opacity:1}
+.cur-dot{
+  width:8px;height:8px;background:var(--red);
+  transform:translate(-50%,-50%)
+}
+.cur-ring{
+  width:38px;height:38px;border:1.5px solid #fff;mix-blend-mode:difference;
+  transform:translate(-50%,-50%);
+  transition:opacity .25s ease,width .3s cubic-bezier(.3,1.4,.4,1),height .3s cubic-bezier(.3,1.4,.4,1),border-color .25s,background-color .25s
+}
+/* durumlar */
+.cur-ring.is-link{width:58px;height:58px;background:rgba(255,255,255,.12)}
+.cur-ring.is-card{width:78px;height:78px;border-width:1px}
+.cur-ring.is-down{width:26px;height:26px}
+.cur-dot.is-down{transform:translate(-50%,-50%) scale(.6)}
+.cur-dot.is-hide,.cur-ring.is-hide{opacity:0!important}
+
+/* ===== MARQUEE ŞERİDİ ===== */
+.marquee{
+  overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:22px 0;background:var(--bg-soft);position:relative
+}
+.marquee-track{
+  display:inline-flex;align-items:center;gap:2.4rem;white-space:nowrap;
+  animation:marq 26s linear infinite;will-change:transform
+}
+.marquee-track span{
+  font-family:'Anton',sans-serif;font-size:1.5rem;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--ink)
+}
+.marquee-track span:nth-child(4n+3){color:transparent;-webkit-text-stroke:1px var(--ink-faint)}
+.marquee-track i{color:var(--red);font-style:normal;font-size:1.1rem}
+@keyframes marq{to{transform:translateX(-50%)}}
+.marquee:hover .marquee-track{animation-play-state:paused}
+
+/* ===== PARALAKS DEV METİN ===== */
+#neden{overflow:hidden}
+.ghost-txt{
+  position:absolute;top:6%;right:-2%;z-index:0;pointer-events:none;user-select:none;
+  font-family:'Anton',sans-serif;font-size:clamp(8rem,24vw,20rem);line-height:1;
+  color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.06);letter-spacing:.02em;
+  will-change:transform
+}
+#neden .wrap{position:relative;z-index:1}
+
+/* ===== ÇİZİLEN VURGU ÇİZGİSİ ===== */
+.draw-line{position:relative;display:inline-block}
+.draw-line::after{
+  content:"";position:absolute;left:0;bottom:.02em;height:.09em;width:100%;
+  background:var(--red);border-radius:99px;transform:scaleX(0);transform-origin:left;
+  opacity:.85
+}
+.draw-line.drawn::after{transition:transform .8s cubic-bezier(.6,.05,.2,1);transform:scaleX(1)}
+
+/* ===== KART 3D TILT ===== */
+.card{transform-style:preserve-3d}
+.card .idx,.card .ico,.card h3,.card p,.card .more{transform:translateZ(18px)}
+/* mobil dokunma tepkisi */
+@media(hover:none){
+  .card:active{transform:scale(.97);transition:transform .15s}
+}
+
+/* ===== MODAL BLUR ===== */
+body.modal-open #header,
+body.modal-open section,
+body.modal-open .marquee,
+body.modal-open footer{
+  filter:blur(7px) brightness(.65);transform:scale(.985);
+  transition:filter .35s ease,transform .35s ease
+}
+#header,section,.marquee,footer{transition:filter .35s ease,transform .35s ease}
+
+@media(prefers-reduced-motion:reduce){
+  .marquee-track{animation:none}
+  .draw-line::after{transform:scaleX(1)}
+  .ghost-txt{display:none}
+  body.modal-open #header,body.modal-open section,body.modal-open .marquee,body.modal-open footer{filter:none;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .js-ready .split-letters .ltr{opacity:1!important;transform:none!important}
+}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto}.reveal{opacity:1;transform:none}}
+
+
+</style>
 </head>
-
 <body>
 
-  <!-- ============================================================
-       NAVBAR
-  ============================================================ -->
-  <header class="navbar" id="navbar">
-    <div class="container nav-inner">
-      <a href="#hero" class="logo">
-        <span class="logo-mark">💈</span>
-        <span class="logo-text">Hair<span class="accent">bey</span></span>
-      </a>
+<header id="header">
+  <div class="wrap nav">
+    <a href="#hero" class="brand"><img class="logo" id="brandLogo" src="data:image/png;base64,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" alt="Melih Yelbey" /></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#hizmetler">Hizmetler</a></li>
+      <li><a href="#neden">Neden Ben?</a></li>
+      <li><a href="#surec">Süreç</a></li>
+      <li><a href="#iletisim">İletişim</a></li>
+      <li><a href="#iletisim" class="nav-cta">İletişime Geç</a></li>
+    </ul>
+    <button class="burger" id="burger" aria-label="Menü"><span></span><span></span><span></span></button>
+  </div>
+</header>
 
-      <nav class="nav-links" id="navLinks" aria-label="Ana menü">
-        <a href="#hero" class="nav-link">Anasayfa</a>
-        <a href="#hizmetler" class="nav-link">Hizmetler</a>
-        <a href="#hakkimizda" class="nav-link">Hakkımızda</a>
-        <a href="#galeri" class="nav-link">Galeri</a>
-        <a href="#iletisim" class="nav-link">İletişim</a>
-        <a href="#randevu" class="btn btn-accent nav-cta">Randevu Al</a>
-      </nav>
-
-      <button class="hamburger" id="hamburger" aria-label="Menüyü aç/kapat" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+<!-- HERO -->
+<section class="hero" id="hero">
+  <canvas class="hero-lines" id="heroLines" aria-hidden="true"></canvas>
+  <div class="wrap" style="position:relative;z-index:2">
+    <div class="hero-top">
+      <span>Web Sistemleri &amp; Dijital Çözümler</span>
+      <span class="r"><span class="dot"></span>Tasarımdan Koda</span>
     </div>
-  </header>
-
-  <!-- ============================================================
-       HERO
-  ============================================================ -->
-  <section class="hero" id="hero">
-    <div class="hero-bg" aria-hidden="true"></div>
-    <div class="hero-overlay" aria-hidden="true"></div>
-
-    <div class="container hero-content">
-      <p class="hero-eyebrow reveal">BURSA NİLÜFER · ERKEK KUAFÖRÜ</p>
-      <h1 class="hero-title reveal">
-        Hairbey'de <span class="accent">Tarzını</span> Keşfet
-      </h1>
-      <p class="hero-sub reveal">
-        Modern berberlik, ustalık ve şıklık bir arada. Saç, sakal ve bakımda
-        profesyonel dokunuş — randevunu saniyeler içinde al.
-      </p>
-      <div class="hero-actions reveal">
-        <a href="#randevu" class="btn btn-accent">Hemen Randevu Al</a>
-        <a href="#hizmetler" class="btn btn-ghost">Hizmetlerimiz</a>
-      </div>
-      <a href="tel:+905350454736" class="hero-phone reveal">📞 0535 045 47 36</a>
-    </div>
-
-    <a href="#hizmetler" class="scroll-down" aria-label="Aşağı kaydır">
-      <span></span>
-    </a>
-  </section>
-
-  <!-- ============================================================
-       HİZMETLER & FİYATLAR
-       (Fiyatları buradan düzenleyebilirsiniz — data-price değerleri
-        randevu formundaki seçeneklerle eşleşir.)
-  ============================================================ -->
-  <section class="section" id="hizmetler">
-    <div class="container">
-      <div class="section-head reveal">
-        <p class="eyebrow">FİYAT LİSTESİ</p>
-        <h2 class="section-title">Hizmetlerimiz</h2>
-        <p class="section-desc">İşinin ehli ekibimizle, her bütçeye uygun profesyonel bakım.</p>
-      </div>
-
-      <div class="services-grid">
-        <!-- Saç Kesimi -->
-        <article class="service-card reveal">
-          <div class="service-icon">✂️</div>
-          <h3>Saç Kesimi</h3>
-          <p>Yüz şekline uygun, modern ve şık kesim.</p>
-          <span class="price">550₺</span>
-        </article>
-
-        <!-- Saç + Sakal -->
-        <article class="service-card reveal">
-          <div class="service-icon">💈</div>
-          <h3>Saç + Sakal</h3>
-          <p>Komple bakım: saç kesimi ve sakal tasarımı bir arada.</p>
-          <span class="price">700₺</span>
-        </article>
-
-        <!-- Sakal Düzeltme -->
-        <article class="service-card reveal">
-          <div class="service-icon">🧔</div>
-          <h3>Sakal Düzeltme</h3>
-          <p>Hatlarına uygun keskin sakal şekillendirme.</p>
-          <span class="price">500₺</span>
-        </article>
-
-        <!-- Traş (EN UCUZ) -->
-        <article class="service-card featured reveal">
-          <span class="badge">En Uygun</span>
-          <div class="service-icon">🪒</div>
-          <h3>Traş</h3>
-          <p>Sıcak havlu ve klasik usturayla pürüzsüz traş.</p>
-          <span class="price">450₺</span>
-        </article>
-
-        <!-- Çocuk Saç Kesimi -->
-        <article class="service-card reveal">
-          <div class="service-icon">🧒</div>
-          <h3>Çocuk Saç Kesimi</h3>
-          <p>Minik müşterilerimiz için sabırlı ve eğlenceli kesim.</p>
-          <span class="price">500₺</span>
-        </article>
-
-        <!-- Saç Yıkama & Bakım -->
-        <article class="service-card reveal">
-          <div class="service-icon">🧴</div>
-          <h3>Saç Yıkama & Bakım</h3>
-          <p>Besleyici ürünlerle saç yıkama ve bakım ritüeli.</p>
-          <span class="price">600₺</span>
-        </article>
+    <h1>
+      <span class="grot split-letters">İşletmenizi</span>
+      <span class="script split-letters">büyütüyoruz.</span>
+    </h1>
+    <div class="hero-lower">
+      <p class="lead">Şirketler, yerel atölyeler ve bireyler için modern, hızlı ve yüksek performanslı web çözümleri kuruyoruz. Strateji ve uygulama, tek ekipten.</p>
+      <div class="hero-actions">
+        <a href="#hizmetler" class="btn btn-primary">Hizmetlerimi İncele →</a>
+        <a href="#iletisim" class="btn btn-ghost">Hemen İletişime Geç</a>
       </div>
     </div>
-  </section>
-
-  <!-- ============================================================
-       HAKKIMIZDA
-  ============================================================ -->
-  <section class="section section-alt" id="hakkimizda">
-    <div class="container about-grid">
-      <div class="about-img reveal" aria-hidden="true"></div>
-
-      <div class="about-text reveal">
-        <p class="eyebrow">HAKKIMIZDA</p>
-        <h2 class="section-title">Ustalık ve Tarz Bir Arada</h2>
-        <p>
-          Hairbey, Bursa Nilüfer'de erkek bakımını bir sanata dönüştürür.
-          Modern teknikleri klasik berberlik geleneğiyle birleştirerek, her
-          müşterimize özel, kusursuz bir deneyim sunuyoruz. Hijyen, kalite ve
-          memnuniyet bizim için her zaman önceliklidir.
-        </p>
-
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-num" data-count="8">0</span><span class="accent">+</span>
-            <small>Yıllık Tecrübe</small>
-          </div>
-          <div class="stat">
-            <span class="stat-num" data-count="5000">0</span><span class="accent">+</span>
-            <small>Mutlu Müşteri</small>
-          </div>
-          <div class="stat">
-            <span class="stat-num" data-count="100">0</span><span class="accent">%</span>
-            <small>Memnuniyet</small>
-          </div>
-        </div>
-
-        <div class="hours">
-          <h4>Çalışma Saatleri</h4>
-          <ul>
-            <li><span>Pazartesi – Cumartesi</span><span>09:00 – 21:00</span></li>
-            <li><span>Pazar</span><span>10:00 – 18:00</span></li>
-          </ul>
-        </div>
-
-        <a href="#randevu" class="btn btn-accent">Randevu Al</a>
-      </div>
+    <div class="hero-strip">
+      <div><div class="num"><span class="dot"></span><span class="count" data-to="24" data-suffix="" data-prefix="7/">7/24</span></div><div class="lbl">çalışan sistemler</div></div>
+      <div><div class="num"><span class="dot"></span><span class="count" data-to="100" data-suffix="" data-prefix="%">%100</span></div><div class="lbl">mobil uyum</div></div>
+      <div><div class="num"><span class="dot"></span>Uçtan uca</div><div class="lbl">tasarım + kod</div></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ============================================================
-       GALERİ
-  ============================================================ -->
-  <section class="section" id="galeri">
-    <div class="container">
-      <div class="section-head reveal">
-        <p class="eyebrow">ÇALIŞMALARIMIZ</p>
-        <h2 class="section-title">Galeri</h2>
-        <p class="section-desc">Salonumuzdan ve işlerimizden kareler.</p>
-      </div>
+<!-- MARQUEE ŞERİDİ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Kurumsal Siteler</span><i>✦</i><span>İşletme Otomasyonları</span><i>✦</i><span>Portfolyolar</span><i>✦</i><span>Web Sistemleri</span><i>✦</i><span>Tasarımdan Koda</span><i>✦</i>
+    <span>Kurumsal Siteler</span><i>✦</i><span>İşletme Otomasyonları</span><i>✦</i><span>Portfolyolar</span><i>✦</i><span>Web Sistemleri</span><i>✦</i><span>Tasarımdan Koda</span><i>✦</i>
+  </div>
+</div>
 
-      <!-- Görseller Unsplash'tan; kendi fotoğraflarınızla değiştirebilirsiniz.
-           assets/README.md dosyasına bakın. -->
-      <div class="gallery-grid">
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=70" alt="Berber koltuğu ve aynalar" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=70" alt="Saç kesimi yapılırken" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=70" alt="Sakal bakımı" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=70" alt="Berber malzemeleri" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=600&q=70" alt="Modern erkek saç modeli" />
-        </figure>
-        <figure class="gallery-item reveal">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1634302086887-13b5585a8b8f?auto=format&fit=crop&w=600&q=70" alt="Usturayla traş" />
-        </figure>
-      </div>
+<!-- HİZMETLER -->
+<section id="hizmetler">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow"><span class="dot"></span>Neler Yapıyorum</span>
+      <h2>Hizmetler &amp; <span class="script draw-line">çözümler</span></h2>
+      <p>Her proje, ihtiyaca göre tasarlanmış, ölçeklenebilir ve bakımı kolay bir sistem olarak kurgulanır.</p>
     </div>
-  </section>
-
-  <!-- ============================================================
-       RANDEVU FORMU
-  ============================================================ -->
-  <section class="section section-alt" id="randevu">
-    <div class="container randevu-wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">RANDEVU</p>
-        <h2 class="section-title">Online Randevu Al</h2>
-        <p class="section-desc">
-          Formu doldur, "WhatsApp ile Gönder" de — randevu talebin anında bize ulaşsın.
-        </p>
-      </div>
-
-      <form class="randevu-form reveal" id="randevuForm" novalidate>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="ad">Ad Soyad</label>
-            <input type="text" id="ad" name="ad" placeholder="Adınız Soyadınız" required />
-          </div>
-          <div class="form-group">
-            <label for="telefon">Telefon</label>
-            <input type="tel" id="telefon" name="telefon" placeholder="05XX XXX XX XX" required />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="hizmet">Hizmet</label>
-            <select id="hizmet" name="hizmet" required>
-              <option value="" disabled selected>Hizmet seçin</option>
-              <option>Saç Kesimi — 550₺</option>
-              <option>Saç + Sakal — 700₺</option>
-              <option>Sakal Düzeltme — 500₺</option>
-              <option>Traş — 450₺</option>
-              <option>Çocuk Saç Kesimi — 500₺</option>
-              <option>Saç Yıkama & Bakım — 600₺</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="tarih">Tarih</label>
-            <input type="date" id="tarih" name="tarih" required />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="saat">Saat</label>
-            <!-- Saat seçenekleri js/script.js tarafından, seçilen tarihe göre
-                 (dolu / geçmiş saatler işaretlenerek) dinamik oluşturulur. -->
-            <select id="saat" name="saat" required>
-              <option value="" disabled selected>Önce tarih seçin</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="not">Not (opsiyonel)</label>
-            <input type="text" id="not" name="not" placeholder="Eklemek istedikleriniz" />
-          </div>
-        </div>
-
-        <p class="form-note">ℹ️ Dolu saatler "(Dolu)" olarak işaretlenir ve seçilemez. Geçmiş tarih/saatler kapalıdır.</p>
-        <p class="form-error" id="formError" role="alert"></p>
-
-        <button type="submit" class="btn btn-accent btn-block btn-whatsapp">
-          <svg viewBox="0 0 32 32" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.1 1.6 5.9L4 29l8.3-1.6c1.7.9 3.7 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.9 1 1-4.8-.3-.4C5.5 18.4 5 16.7 5 15 5 9 9.6 5 16 5s11 4.4 11 10-5 10-11 10zm5.4-7.6c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.2s-.8 1-.9 1.2c-.2.2-.3.2-.6.1-1.8-.9-3-1.6-4.2-3.6-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg>
-          WhatsApp ile Randevu Gönder
-        </button>
-      </form>
+    <div class="cards scrolly-cards">
+      <article class="card scard">
+        <div class="idx">01 / Kurumsal</div><div class="ico">📦</div>
+        <h3>Kurumsal Şirket Siteleri</h3>
+        <p>Vizyonunuzu dünya standartlarında yansıtan, hızlı ve güvenli kurumsal kimlikler.</p>
+        <button class="more" data-modal="kurumsal">Detaylı bilgi <span>→</span></button>
+      </article>
+      <article class="card scard">
+        <div class="idx">02 / Otomasyon</div><div class="ico">⚙️</div>
+        <h3>Atölye &amp; İşletme Otomasyonları</h3>
+        <p>Randevu yönetimi, ürün sergileme ve müşteri takip odaklı özel iş akışı sistemleri.</p>
+        <button class="more" data-modal="otomasyon">Detaylı bilgi <span>→</span></button>
+      </article>
+      <article class="card scard">
+        <div class="idx">03 / Portfolyo</div><div class="ico">✨</div>
+        <h3>Kişisel &amp; Freelance Portfolyolar</h3>
+        <p>Özgün, akılda kalıcı ve prestijli dijital vitrinler.</p>
+        <button class="more" data-modal="portfolyo">Detaylı bilgi <span>→</span></button>
+      </article>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ============================================================
-       İLETİŞİM
-  ============================================================ -->
-  <section class="section" id="iletisim">
-    <div class="container">
-      <div class="section-head reveal">
-        <p class="eyebrow">İLETİŞİM</p>
-        <h2 class="section-title">Bize Ulaşın</h2>
-      </div>
+<!-- NEDEN BEN -->
+<section id="neden">
+  <div class="ghost-txt" aria-hidden="true">NEDEN</div>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow"><span class="dot"></span>Yaklaşımım</span>
+      <h2>Neden <span class="script draw-line">ben?</span></h2>
+      <p>Bir web sitesi değil; veriyle beslenen, yönetilebilir ve büyüyebilen bir dijital sistem teslim ederim.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why reveal"><div class="step">01</div><div><h3>Kapsamlı yapılar</h3><p>Veri tabanı süreçleri ve yönetim panelleriyle bütünleşik çalışan, içeriğini kendiniz yönetebileceğiniz sistemler.</p></div></div>
+      <div class="why reveal"><div class="step">02</div><div><h3>Mobil uyum (Responsive)</h3><p>Telefon, tablet ve masaüstünde kusursuz çalışan, her ekrana akıcı şekilde uyum sağlayan esnek arayüzler.</p></div></div>
+    </div>
+  </div>
+</section>
 
-      <div class="contact-grid">
-        <div class="contact-info reveal">
-          <a href="https://maps.google.com/?q=Güngören Mahallesi Karanfil Sokak No:2 Nilüfer Bursa" target="_blank" rel="noopener" class="contact-item">
-            <span class="ci-icon">📍</span>
-            <span><strong>Adres</strong>Güngören Mah. Karanfil Sok. No:2, Nilüfer / Bursa</span>
-          </a>
-          <a href="tel:+905350454736" class="contact-item">
-            <span class="ci-icon">📞</span>
-            <span><strong>Telefon</strong>0535 045 47 36</span>
-          </a>
-          <a href="mailto:melihyelbey1216@gmail.com" class="contact-item">
-            <span class="ci-icon">✉️</span>
-            <span><strong>E-posta</strong>melihyelbey1216@gmail.com</span>
-          </a>
-          <a href="https://instagram.com/melih_yelbey" target="_blank" rel="noopener" class="contact-item">
-            <span class="ci-icon">📸</span>
-            <span><strong>Instagram</strong>@melih_yelbey</span>
-          </a>
+<!-- SÜREÇ -->
+<section id="surec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow"><span class="dot"></span>Nasıl Çalışıyorum</span>
+      <h2>Çalışma <span class="script draw-line">süreci</span></h2>
+      <p>Her proje dört net adımda ilerler — başından sonuna kadar ne olacağını bilirsiniz.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-rail"><div class="tl-fill"></div></div>
+      <div class="tl-step">
+        <div class="tl-node"></div>
+        <div class="tl-card">
+          <div class="tl-num">Adım 01</div>
+          <h3>Tanışma &amp; Keşif</h3>
+          <p>İhtiyacınızı dinler, hedef kitlenizi ve rakiplerinizi incelerim. Birlikte net bir yol haritası ve kapsam belirleriz.</p>
         </div>
-
-        <div class="contact-map reveal">
-          <iframe
-            title="Hairbey Konum"
-            src="https://www.google.com/maps?q=Güngören%20Mahallesi%20Karanfil%20Sokak%20No:2%20Nilüfer%20Bursa&output=embed"
-            width="100%" height="100%" style="border:0;" loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      <div class="tl-step">
+        <div class="tl-node"></div>
+        <div class="tl-card">
+          <div class="tl-num">Adım 02</div>
+          <h3>Tasarım</h3>
+          <p>Markanıza özel arayüz tasarlarım. Onayınız olmadan koda geçilmez — her ekranı önceden görürsünüz.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-node"></div>
+        <div class="tl-card">
+          <div class="tl-num">Adım 03</div>
+          <h3>Geliştirme</h3>
+          <p>Tasarım, hızlı ve güvenli koda dönüşür. Süreç boyunca canlı önizleme linkiyle ilerlemeyi takip edersiniz.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-node"></div>
+        <div class="tl-card">
+          <div class="tl-num">Adım 04</div>
+          <h3>Teslim &amp; Destek</h3>
+          <p>Site yayına alınır, kullanım eğitimi verilir. Sonrasında da yanınızdayım — bakım ve geliştirme desteği sürer.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ============================================================
-       FOOTER
-  ============================================================ -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <span class="logo-text">Hair<span class="accent">bey</span></span>
-        <p>Bursa Nilüfer'in modern erkek kuaförü.</p>
-      </div>
-      <div class="footer-social">
-        <a href="https://instagram.com/melih_yelbey" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
-        <a href="https://wa.me/905350454736" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
-        <a href="tel:+905350454736" aria-label="Telefon">Telefon</a>
-      </div>
+<!-- İLETİŞİM -->
+<section id="iletisim">
+  <div class="wrap contact-grid">
+    <div class="contact-info reveal">
+      <span class="eyebrow"><span class="dot"></span>İletişim</span>
+      <h3>Projenizi <span class="script draw-line">konuşalım.</span></h3>
+      <p>Formu doldurun, mesajınız doğrudan WhatsApp üzerinden bana iletilsin — ya da aşağıdan dilediğiniz kanaldan ulaşın.</p>
+      <ul class="ci-list">
+        <li><a href="https://wa.me/905350454736" target="_blank" rel="noopener"><span class="ci-ico">💬</span><span><span class="ci-t">WhatsApp / Telefon</span><br><span class="ci-v">+90 535 045 47 36</span></span></a></li>
+        <li><a href="mailto:melihyelbey1216@gmail.com"><span class="ci-ico">✉️</span><span><span class="ci-t">E-posta</span><br><span class="ci-v">melihyelbey1216@gmail.com</span></span></a></li>
+        <li><a href="https://instagram.com/melih_yelbey" target="_blank" rel="noopener"><span class="ci-ico">📸</span><span><span class="ci-t">Instagram</span><br><span class="ci-v">@melih_yelbey</span></span></a></li>
+      </ul>
     </div>
-    <p class="footer-copy">© <span id="year"></span> Hairbey · Tüm hakları saklıdır.</p>
-  </footer>
+    <form id="contactForm" novalidate class="reveal">
+      <div class="field"><label for="ad">Ad Soyad</label><input type="text" id="ad" name="ad" required placeholder="Adınız" /></div>
+      <div class="field"><label for="email">E-posta</label><input type="email" id="email" name="email" required placeholder="ornek@mail.com" /></div>
+      <div class="field"><label for="mesaj">Mesaj</label><textarea id="mesaj" name="mesaj" required placeholder="Projenizden kısaca bahsedin..."></textarea></div>
+      <button type="submit" class="btn btn-primary">WhatsApp'tan Gönder →</button>
+      <p class="form-note">Gönder'e bastığınızda mesajınız WhatsApp'ta açılır.</p>
+      <div class="form-success" id="formSuccess">✓ WhatsApp açılıyor — mesajınızı oradan gönderebilirsiniz.</div>
+    </form>
+  </div>
+</section>
 
-  <!-- Sabit WhatsApp butonu -->
-  <a href="https://wa.me/905350454736" class="float-wa" target="_blank" rel="noopener" aria-label="WhatsApp ile yazın">
-    <svg viewBox="0 0 32 32" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.1 1.6 5.9L4 29l8.3-1.6c1.7.9 3.7 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.9 1 1-4.8-.3-.4C5.5 18.4 5 16.7 5 15 5 9 9.6 5 16 5s11 4.4 11 10-5 10-11 10zm5.4-7.6c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.2s-.8 1-.9 1.2c-.2.2-.3.2-.6.1-1.8-.9-3-1.6-4.2-3.6-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg>
-  </a>
+<footer>
+  <div class="wrap foot">
+    <p>© <span id="year"></span> Melih Yelbey — Web sistemleri &amp; dijital çözümler.</p>
+    <div class="foot-social">
+      <a href="https://wa.me/905350454736" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.8 14.16c-.24.68-1.42 1.31-1.95 1.36-.5.05-.97.24-3.27-.68-2.76-1.09-4.5-3.92-4.64-4.1-.13-.18-1.11-1.48-1.11-2.82 0-1.34.7-2 .95-2.27.24-.27.53-.34.71-.34h.51c.16 0 .38-.06.59.45.24.58.81 2 .88 2.14.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.57.16.27.71 1.17 1.52 1.9 1.04.92 1.92 1.21 2.2 1.35.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.23.61-.14.25.09 1.59.75 1.86.89.27.14.45.2.52.32.07.11.07.64-.17 1.32z"/></svg></a>
+      <a href="tel:+905350454736" aria-label="Telefon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.5 15.5 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/></svg></a>
+      <a href="mailto:melihyelbey1216@gmail.com" aria-label="E-posta"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z"/></svg></a>
+      <a href="https://instagram.com/melih_yelbey" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.58 0 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s0 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58 0-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s0-3.58.07-4.85C2.38 3.96 3.9 2.42 7.15 2.27 8.42 2.21 8.8 2.2 12 2.2zm0 3.27a6.53 6.53 0 1 0 0 13.06 6.53 6.53 0 0 0 0-13.06zm0 10.77a4.24 4.24 0 1 1 0-8.48 4.24 4.24 0 0 1 0 8.48zm6.79-10.95a1.53 1.53 0 1 0 0 3.06 1.53 1.53 0 0 0 0-3.06z"/></svg></a>
+    </div>
+  </div>
+</footer>
 
-  <script src="js/script.js"></script>
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <button class="modal-close" id="modalClose" aria-label="Kapat">×</button>
+    <div class="m-idx" id="mIdx"></div>
+    <div class="m-ico" id="mIco"></div>
+    <h3 id="mTitle"></h3>
+    <p id="mDesc"></p>
+    <ul id="mList"></ul>
+  </div>
+</div>
+
+
+<script>
+const $=s=>document.querySelector(s);
+document.getElementById('year').textContent=new Date().getFullYear();
+
+const header=$('#header');
+addEventListener('scroll',()=>header.classList.toggle('scrolled',scrollY>30));
+
+const burger=$('#burger'),navLinks=$('#navLinks');
+const toggleMenu=open=>{const on=open??!navLinks.classList.contains('open');navLinks.classList.toggle('open',on);burger.classList.toggle('open',on);};
+burger.addEventListener('click',()=>toggleMenu());
+navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggleMenu(false)));
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}});});
+
+const modalData={
+  kurumsal:{idx:'01 / Kurumsal',ico:'📦',title:'Kurumsal Şirket Siteleri',desc:'Markanızı ilk saniyede güven veren, profesyonel bir teknoloji şirketi hissiyatıyla sunan kurumsal web sistemleri.',list:['Çok dilli, SEO uyumlu sayfa yapısı','Hızlı yükleme ve A+ performans skorları','İçerik yönetim paneli (CMS)','Güvenlik ve düzenli bakım altyapısı']},
+  otomasyon:{idx:'02 / Otomasyon',ico:'⚙️',title:'Atölye & İşletme Otomasyonları',desc:'İşletmenizin günlük akışını dijitale taşıyan, zaman kazandıran özel iş akışı sistemleri.',list:['Online randevu ve takvim yönetimi','Ürün/hizmet kataloğu ve sergileme','Müşteri takip ve kayıt sistemi','Yönetim paneliyle tam kontrol']},
+  portfolyo:{idx:'03 / Portfolyo',ico:'✨',title:'Kişisel & Freelance Portfolyolar',desc:'Sizi rakiplerinizden ayıran, akılda kalıcı ve prestijli kişisel dijital vitrinler.',list:['Özgün, markanıza özel tasarım','Etkileyici animasyon ve etkileşimler','Sosyal medya ve iletişim entegrasyonu','Mobilde kusursuz görünüm']}
+};
+const overlay=$('#modalOverlay');
+const openModal=key=>{const d=modalData[key];if(!d)return;$('#mIdx').textContent=d.idx;$('#mIco').textContent=d.ico;$('#mTitle').textContent=d.title;$('#mDesc').textContent=d.desc;$('#mList').innerHTML=d.list.map(i=>`<li>${i}</li>`).join('');overlay.classList.add('open');document.body.classList.add('modal-open');};
+const closeModal=()=>{overlay.classList.remove('open');document.body.classList.remove('modal-open');};
+document.querySelectorAll('[data-modal]').forEach(b=>b.addEventListener('click',()=>openModal(b.dataset.modal)));
+$('#modalClose').addEventListener('click',closeModal);
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal();});
+addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+const form=$('#contactForm'),success=$('#formSuccess');
+form.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!form.checkValidity()){form.reportValidity();return;}
+  const ad=$('#ad').value.trim(),email=$('#email').value.trim(),mesaj=$('#mesaj').value.trim();
+  const metin=`Merhaba Melih, ben ${ad}.\n\n${mesaj}\n\nE-posta: ${email}`;
+  window.open(`https://wa.me/905350454736?text=${encodeURIComponent(metin)}`,'_blank');
+  success.classList.add('show');form.reset();
+  setTimeout(()=>success.classList.remove('show'),3000);
+});
+
+const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});},{threshold:.15});
+document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3*.08)+'s';io.observe(el);});
+
+/* ---- hero: seyrek dolasan kirmizi cizgiler ---- */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const c=document.getElementById('heroLines');if(!c)return;
+  const ctx=c.getContext('2d');
+  let W,H,dpr,lines=[],raf;
+  const RED=[255,84,54];
+  const COUNT=7; // seyrek
+
+  function size(){
+    const r=c.getBoundingClientRect();
+    dpr=Math.min(devicePixelRatio||1,2);
+    W=r.width;H=r.height;
+    c.width=W*dpr;c.height=H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function makeLine(off){
+    // soldan saga akan, hafif dalgali bir hat
+    const y=H*(0.1+Math.random()*0.8);
+    return {
+      x:-(Math.random()*W*0.6)-(off||0),
+      y,
+      len:W*(0.28+Math.random()*0.34),     // kisa-orta uzunlukta segmentler
+      speed:0.18+Math.random()*0.30,        // yavas, sakin
+      amp:6+Math.random()*22,               // dalga genligi
+      freq:0.004+Math.random()*0.006,       // dalga sikligi
+      phase:Math.random()*Math.PI*2,
+      alpha:0.10+Math.random()*0.22,        // dusuk opaklik
+      w:1+Math.random()*0.8
+    };
+  }
+  function init(){lines=[];for(let i=0;i<COUNT;i++)lines.push(makeLine(i*W*0.18));}
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(const L of lines){
+      L.x+=L.speed;
+      ctx.beginPath();
+      const seg=Math.max(L.len,40), step=8;
+      for(let i=0;i<=seg;i+=step){
+        const px=L.x+i;
+        const py=L.y+Math.sin((px)*L.freq+L.phase)*L.amp;
+        i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      // ucları soluklasan gradyan
+      const head=L.x+L.len;
+      const grad=ctx.createLinearGradient(L.x,0,head,0);
+      grad.addColorStop(0,`rgba(${RED[0]},${RED[1]},${RED[2]},0)`);
+      grad.addColorStop(0.5,`rgba(${RED[0]},${RED[1]},${RED[2]},${L.alpha})`);
+      grad.addColorStop(1,`rgba(${RED[0]},${RED[1]},${RED[2]},0)`);
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=L.w;
+      ctx.lineCap='round';
+      ctx.stroke();
+      // ekranı geçince yeniden doğ
+      if(L.x>W+40){Object.assign(L,makeLine(0));L.x=-L.len;}
+    }
+    raf=requestAnimationFrame(draw);
+  }
+
+  function start(){size();init();if(!reduce){cancelAnimationFrame(raf);draw();}else{ctx.clearRect(0,0,W,H);}}
+  addEventListener('resize',()=>{clearTimeout(c._t);c._t=setTimeout(start,150);});
+  start();
+})();
+
+/* ================= SCROLLYTELLING (GSAP + ScrollTrigger) ================= */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasGSAP=typeof gsap!=='undefined'&&typeof ScrollTrigger!=='undefined';
+  document.documentElement.classList.add('js-ready');
+  if(!hasGSAP){ // kütüphane yüklenmediyse harfleri görünür bırak
+    document.querySelectorAll('.split-letters .ltr,.split-letters').forEach(e=>e.style.opacity=1);
+    return;
+  }
+  gsap.registerPlugin(ScrollTrigger);
+  // mobilde adres çubuğu açılıp kapanınca olan ani zıplamaları engelle
+  ScrollTrigger.config({ignoreMobileResize:true});
+
+  // --- 1) Hero harflerini böl ---
+  function splitToLetters(el){
+    const text=el.textContent;
+    el.textContent='';
+    const frag=document.createDocumentFragment();
+    for(const ch of text){
+      const s=document.createElement('span');
+      s.className='ltr';
+      s.textContent=ch===' '?'\u00A0':ch;
+      frag.appendChild(s);
+    }
+    el.appendChild(frag);
+    return el.querySelectorAll('.ltr');
+  }
+  const heroLetters=[];
+  document.querySelectorAll('.hero h1 .split-letters').forEach(el=>{
+    splitToLetters(el).forEach(l=>heroLetters.push(l));
+  });
+
+  if(reduce){
+    heroLetters.forEach(l=>{l.style.opacity=1;});
+  }else{
+    // açılışta dağınık gelip yerine otursun
+    gsap.set(heroLetters,{opacity:0,y:'0.5em',rotateZ:-6,transformOrigin:'50% 100%'});
+    gsap.to(heroLetters,{
+      opacity:1,y:0,rotateZ:0,
+      duration:0.6,ease:'back.out(1.5)',
+      stagger:{each:0.035,from:'start'},
+      delay:0.25
+    });
+  }
+
+  // --- 1b) Hero takla: harfler scroll ile tek tek, dalga halinde takla atar ---
+  // Dokunmatik cihazlarda pin (sayfa sabitleme) zıplamaya yol açtığı için:
+  //  - Masaüstü (fare): sayfa kısa süre sabitlenir, takla scroll ile izlenir
+  //  - Mobil (dokunmatik): sabitleme YOK; hero ekrandan çıkarken harfler taklasını atar
+  if(!reduce&&heroLetters.length){
+    const heroSec=document.querySelector('.hero');
+    const isTouch=!matchMedia('(hover:hover) and (pointer:fine)').matches;
+    gsap.set(heroLetters,{transformPerspective:600,transformOrigin:'50% 50%'});
+    const tl=gsap.timeline({
+      scrollTrigger:isTouch?{
+        trigger:heroSec,
+        start:'top top',
+        end:'bottom 25%',     // hero görünümden çıkana dek takla tamamlanır
+        pin:false,            // mobilde sabitleme yok = fırlamayoz
+        scrub:true,
+        invalidateOnRefresh:true
+      }:{
+        trigger:heroSec,
+        start:'top top',
+        end:'+=620',
+        pin:true,
+        scrub:true,
+        invalidateOnRefresh:true
+      }
+    });
+    // dalga: her harf sırayla tam tur döner, dönüşte minik bir zıplama yapar
+    tl.to(heroLetters,{rotateX:-360,duration:1,ease:'none',stagger:0.018,overwrite:'auto'},0)
+      .to(heroLetters,{y:'-0.12em',duration:0.5,ease:'sine.out',stagger:0.018},0)
+      .to(heroLetters,{y:0,duration:0.5,ease:'sine.in',stagger:0.018},0.5);
+  }
+
+  // --- 2) Sayıların sayması ---
+  document.querySelectorAll('.count').forEach(el=>{
+    const to=parseFloat(el.dataset.to||'0');
+    const pre=el.dataset.prefix||'';
+    const suf=el.dataset.suffix||'';
+    if(reduce){el.textContent=pre+to+suf;return;}
+    const obj={v:0};
+    ScrollTrigger.create({
+      trigger:el,start:'top 90%',once:true,
+      onEnter:()=>{
+        gsap.to(obj,{v:to,duration:1.4,ease:'power2.out',
+          onUpdate:()=>{el.textContent=pre+Math.round(obj.v)+suf;}});
+      }
+    });
+  });
+
+  // --- 3) Hizmet kartları: pin'siz, akıcı kademeli giriş (tüm cihazlarda) ---
+  if(!reduce){
+    const cards=gsap.utils.toArray('#hizmetler .scard');
+    if(cards.length){
+      gsap.set(cards,{opacity:0,y:70,rotateZ:1.5,transformOrigin:'50% 100%'});
+      ScrollTrigger.create({
+        trigger:'#hizmetler',start:'top 70%',once:true,
+        onEnter:()=>{
+          gsap.to(cards,{
+            opacity:1,y:0,rotateZ:0,
+            duration:0.9,ease:'power3.out',
+            stagger:0.16,
+            clearProps:'transform' // bitince transform'u temizle: tilt ile çakışma olmasın
+          });
+        }
+      });
+    }
+  }
+
+  // reveal'leri GSAP varlığında da çalışır tutmak için ScrollTrigger refresh
+  ScrollTrigger.refresh();
+
+  // --- 4) Paralaks dev metin (NEDEN) ---
+  const ghost=document.querySelector('.ghost-txt');
+  if(ghost&&!reduce){
+    gsap.to(ghost,{
+      x:()=>-(innerWidth*0.35),
+      ease:'none',
+      scrollTrigger:{trigger:'#neden',start:'top bottom',end:'bottom top',scrub:1}
+    });
+  }
+
+  // --- 5) Çizilen vurgu çizgileri ---
+  document.querySelectorAll('.draw-line').forEach(el=>{
+    ScrollTrigger.create({
+      trigger:el,start:'top 82%',once:true,
+      onEnter:()=>el.classList.add('drawn')
+    });
+  });
+
+  // --- 6) Süreç çizelgesi: hat scroll'la dolar, düğümler sırayla yanar ---
+  const tlWrap=document.querySelector('#surec .timeline');
+  if(tlWrap){
+    const fill=tlWrap.querySelector('.tl-fill');
+    const steps=gsap.utils.toArray('#surec .tl-step');
+    if(reduce){
+      if(fill)fill.style.transform='scaleY(1)';
+      steps.forEach(s=>s.classList.add('on'));
+    }else{
+      gsap.set(steps.map(s=>s.querySelector('.tl-card')),{opacity:0,y:34});
+      if(fill){
+        gsap.fromTo(fill,{scaleY:0},{scaleY:1,ease:'none',
+          scrollTrigger:{trigger:tlWrap,start:'top 72%',end:'bottom 58%',scrub:true}});
+      }
+      steps.forEach(s=>{
+        ScrollTrigger.create({trigger:s,start:'top 74%',once:true,
+          onEnter:()=>{
+            s.classList.add('on');
+            gsap.to(s.querySelector('.tl-card'),{opacity:1,y:0,duration:.7,ease:'power3.out'});
+          }});
+      });
+    }
+  }
+})();
+
+/* ================= KART 3D TILT (masaüstü) ================= */
+(function(){
+  const fine=matchMedia('(pointer:fine)').matches&&matchMedia('(hover:hover)').matches;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!fine||reduce)return;
+  document.querySelectorAll('.card').forEach(card=>{
+    let raf,prev='';
+    card.addEventListener('mouseenter',()=>{prev=card.style.transform||'';});
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width-0.5;   // -0.5..0.5
+      const py=(e.clientY-r.top)/r.height-0.5;
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(()=>{
+        card.style.transition='transform .08s ease-out';
+        card.style.transform=`perspective(800px) translateY(-6px) rotateY(${px*7}deg) rotateX(${-py*7}deg)`;
+      });
+    });
+    card.addEventListener('mouseleave',()=>{
+      cancelAnimationFrame(raf);
+      card.style.transition='transform .5s cubic-bezier(.2,.7,.3,1)';
+      card.style.transform=prev; // GSAP'in bıraktığı durumu geri yükle
+    });
+  });
+})();
+
+
+/* ================= ÖZEL KÜRSÖR ================= */
+(function(){
+  // yalnızca: gerçek fare + hover destekli + hareket azaltma kapalı
+  const fine=matchMedia('(pointer:fine)').matches;
+  const hover=matchMedia('(hover:hover)').matches;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!fine||!hover||reduce)return;
+
+  const dot=document.createElement('div');dot.className='cur-dot';
+  const ring=document.createElement('div');ring.className='cur-ring';
+  document.body.appendChild(ring);document.body.appendChild(dot);
+  document.documentElement.classList.add('cur-on');
+
+  let mx=innerWidth/2,my=innerHeight/2; // hedef (fare)
+  let rx=mx,ry=my;                       // halkanın yumuşak konumu
+  let seen=false,raf;
+
+  const lerp=(a,b,t)=>a+(b-a)*t;
+
+  function loop(){
+    rx=lerp(rx,mx,0.16);
+    ry=lerp(ry,my,0.16);
+    dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)${dot.classList.contains('is-down')?' scale(.6)':''}`;
+    ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    raf=requestAnimationFrame(loop);
+  }
+
+  addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    if(!seen){seen=true;rx=mx;ry=my;loop();}
+    // durum tespiti: üzerinde olunan öğe
+    const t=e.target;
+    const overInput=t.closest&&t.closest('input,textarea');
+    const overCard=t.closest&&t.closest('.card');
+    const overLink=t.closest&&t.closest('a,button,.more,[role="button"]');
+    dot.classList.toggle('is-hide',!!overInput);
+    ring.classList.toggle('is-hide',!!overInput);
+    ring.classList.toggle('is-card',!!overCard&&!overLink);
+    ring.classList.toggle('is-link',!!overLink);
+  },{passive:true});
+
+  addEventListener('mousedown',()=>{dot.classList.add('is-down');ring.classList.add('is-down');});
+  addEventListener('mouseup',()=>{dot.classList.remove('is-down');ring.classList.remove('is-down');});
+
+  // pencereden çıkınca gizle, dönünce göster
+  document.addEventListener('mouseleave',()=>{dot.classList.add('is-hide');ring.classList.add('is-hide');});
+  document.addEventListener('mouseenter',()=>{dot.classList.remove('is-hide');ring.classList.remove('is-hide');});
+  addEventListener('blur',()=>{dot.classList.add('is-hide');ring.classList.add('is-hide');});
+  addEventListener('focus',()=>{dot.classList.remove('is-hide');ring.classList.remove('is-hide');});
+})();
+</script>
 </body>
 </html>
